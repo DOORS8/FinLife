@@ -1,0 +1,66 @@
+# life_config.txt - 财务人生模拟器配置文件
+# ============================================================
+# 格式说明：
+#   - 以 # 开头的行为注释
+#   - [section] 定义段落
+#   - key = value 定义参数
+#   - Parameter: value | value ~ N(mean, std) | value ~ U(lo, hi) | value ~ LN(mu, sigma) | value ~ T(lo, mode, hi)
+#   - 百分比: 0.03 或 3% 均可
+# ============================================================
+
+[simulation]
+start_year = 2027
+end_year = 2060
+n_samples = 500
+seed = 123
+
+[initial_assets]
+cash = 300_000
+investments = 150_000
+real_estate = 0
+other_assets = 0
+liabilities = 0
+
+[salary]
+value = 400_000 ~ N(400_000, 40_000)
+annual_change_rate = 3%
+
+[living_expense]
+value = 100_000 ~ N(100_000, 10_000)
+annual_change_rate = 3%
+
+[investment_return]
+value = 8% ~ N(8%, 18%)
+
+[inflation_rate]
+value = 3% ~ N(3%, 2%)
+
+[events]
+# 格式: 事件类型 | 触发年份 | 参数1=值1 | 参数2=值2 | ...
+# 支持的事件: buy_house, buy_car, job_change, marriage, birth, retirement, redistribute_invest, change_living_expense, change_invest_return
+# 触发年份写 auto 表示每年都触发
+
+# 结婚
+marriage | 2029 | partner_income=100_000 | extra_expense=30_000
+
+# 生子
+birth | 2030 | child_cost=30_000 | edu_start_age=6 | edu_cost=10_000
+
+# 买车
+buy_car | 2028 | car_price=100_000 | down_pct=50% | loan_years=3 | loan_rate=2.6%
+
+# 买房
+buy_house | 2035 | house_price=3_000_000 | down_pct=30% | mortgage_years=30 | mortgage_rate=3.5% | appreciation=3%
+
+# 换工作
+job_change | 2033 | new_salary=300_000 ~ N(300_000, 30_000)
+
+# 更换稳健投资
+change_invest_return | 2045 | new_return=6% ~ N(4%, 2%)
+
+# 退休
+retirement | 2060
+
+# 投资再平衡（每年自动执行）
+redistribute_invest | auto
+
