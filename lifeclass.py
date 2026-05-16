@@ -553,6 +553,84 @@ class MonteCarloSim:
         plt.tight_layout()
         return fig
 
+    def plot_financial_freedom(self, percentiles=[5, 25, 50, 75, 95],
+                                figsize=(8, 10)):
+        """
+        绘制财富自由度随时间的变化图。
+
+        定义：
+          - 初级财富自由度 = 历史累计投资收入 / 历史累计总支出
+            （含义：到今年为止，投资赚的钱能覆盖多大比例的历史总支出）
+          - 高级财富自由度 = 历史累计投资收入 / 历史累计工资收入
+            （含义：到今年为止，投资赚的钱相当于多大比例的历史总工资）
+
+        两个自由度画在上下两张子图中，堆叠放置。
+        蒙特卡洛多路径以分位数区间展示。
+        """
+        # ── 收集所有样本的原始数据 ──
+        years = self.results[0].history["year"]
+
+        # (n_samples, n_years)
+        income_invest = np.vstack([s.history["income_invest"] for s in self.results])
+        income_salary = np.vstack([s.history["income_salary"] for s in self.results])
+        total_expense = np.vstack([s.history["total_expense"] for s in self.results])
+
+        # 沿时间轴累计求和
+        cum_invest = np.cumsum(income_invest, axis=1)
+        cum_salary = np.cumsum(income_salary, axis=1)
+        cum_expense = np.cumsum(total_expense, axis=1)
+
+        # 计算两个自由度
+        primary_fi  = cum_invest / np.maximum(cum_expense, 1e-10)   # 初级
+        advanced_fi = cum_invest / np.maximum(cum_salary, 1e-10)    # 高级
+
+        # ── 统计量 ──
+        def compute_stats(matrix, percentiles):
+            stats = {}
+            for p in percentiles:
+                stats[f"p{p}"] = np.percentile(matrix, p, axis=0)
+            stats["mean"] = matrix.mean(axis=0)
+            return stats
+
+        primary_stats  = compute_stats(primary_fi, percentiles)
+        advanced_stats = compute_stats(advanced_fi, percentiles)
+
+        # ── 绘图 ──
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=figsize, sharex=True)
+
+        # --- 上图：初级财富自由度 ---
+        ax1.fill_between(years, primary_stats["p5"], primary_stats["p95"],
+                         alpha=0.15, color="steelblue", label="90% CI")
+        ax1.fill_between(years, primary_stats["p25"], primary_stats["p75"],
+                         alpha=0.25, color="steelblue", label="IQR (p25-p75)")
+        ax1.plot(years, primary_stats["p50"], "b-", lw=2, label="Median")
+        ax1.plot(years, primary_stats["mean"], "r--", lw=1.5, label="Mean")
+        ax1.axhline(1.0, color="green", lw=1.2, ls=":", label="FI = 100%")
+        ax1.set_ylabel("Cumulative Invest Income / Expenses")
+        ax1.set_title("Low Level Financial Freedom Index")
+        ax1.legend(loc="upper left")
+        ax1.grid(True, alpha=0.3)
+        ax1.set_ylim(bottom=0)
+
+        # --- 下图：高级财富自由度 ---
+        ax2.fill_between(years, advanced_stats["p5"], advanced_stats["p95"],
+                         alpha=0.15, color="darkorange", label="90% CI")
+        ax2.fill_between(years, advanced_stats["p25"], advanced_stats["p75"],
+                         alpha=0.25, color="darkorange", label="IQR (p25-p75)")
+        ax2.plot(years, advanced_stats["p50"], color="darkorange", lw=2, label="Median")
+        ax2.plot(years, advanced_stats["mean"], "r--", lw=1.5, label="Mean")
+        ax2.axhline(1.0, color="green", lw=1.2, ls=":", label="FI = 100%")
+        ax2.set_ylabel("Cumulative Invest Income / Salary Income")
+        ax2.set_xlabel("Year")
+        ax2.set_title("High Level Financial Freedom Index")
+        ax2.legend(loc="upper left")
+        ax2.grid(True, alpha=0.3)
+        ax2.set_ylim(bottom=0)
+
+        plt.tight_layout()
+        return fig
+
+
     def find_financial_independence_year(self, threshold_rate=0.04,
                                           expense_multiple=25):
         """估算财务自由年份：当投资资产 >= 年生活支出 × multiple 时"""
