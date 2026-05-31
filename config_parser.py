@@ -31,11 +31,13 @@ config_parser.py - 财务人生模拟器配置文件解析器
 6. 支持的事件类型及参数：
    - buy_house  : house_price, down_pct, mortgage_years, mortgage_rate, appreciation
    - buy_car    : car_price, down_pct, loan_years, loan_rate
-   - job_change : new_salary, raise_pct
-   - marriage   : partner_income, extra_expense
-   - birth      : child_cost, edu_start_age, edu_cost
+   - job_change : new_salary（按当前购买力，自动通胀换算）, raise_pct, raise_value（按当前购买力）
+   - marriage   : partner_income（按当前购买力，自动通胀换算）, extra_expense（按当前购买力，自动通胀换算）
+   - birth      : child_cost（按当前购买力，自动通胀换算）, edu_start_age, edu_cost（按当前购买力，自动通胀换算）
    - retirement : (无额外参数)
    - redistribute_invest : (无额外参数)
+   - change_living_expense : new_expense（按当前购买力，自动通胀换算）, raise_pct, raise_value（按当前购买力）
+   - change_invest_return : new_return
 """
 
 import re
@@ -285,4 +287,5 @@ def get_sim_config(config):
         'end_year': int(sim_cfg.get('end_year', 2060)),
         'n_samples': int(sim_cfg.get('n_samples', 1000)),
         'seed': int(sim_cfg.get('seed', 42)),
+        'inflation_adjusted': sim_cfg.get('inflation_adjusted', 'true'),
     }

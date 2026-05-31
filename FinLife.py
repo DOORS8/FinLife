@@ -33,12 +33,20 @@ def run_single(config_path):
     mc = MonteCarloSim(create_sim, n_samples=sim_params['n_samples'],
                        seed=sim_params['seed'])
     mc.run(end_year=sim_params['end_year'])
+
+    # 通胀调整标识
+    raw = sim_params['inflation_adjusted']
+    sim_params['inflation_adjusted'] = raw.lower() in ('true', '1', 'yes')
+
     print(f"✅ {config_path} 模拟完成")
     return mc, sim_params
 
 
 def print_single_results(mc, sim_params, det=None):
     """打印单个配置的模拟结果"""
+    use_real = sim_params['inflation_adjusted']
+    suffix = '_noinf' if use_real else ''
+
     if det is not None:
         print("\n=== 确定性模拟最终状态 ===")
         print(f"  净值: {det.net_worth/1e4:.1f} 万")
@@ -50,11 +58,12 @@ def print_single_results(mc, sim_params, det=None):
 
     stats = mc.summary()
     idx = -1
-    print(f"\n=== 蒙特卡洛模拟统计 ({int(stats['years'][idx])}年) ===")
-    print(f"  均值净值: {stats['mean'][idx]/1e4:.1f} 万")
-    print(f"  中位数净值: {stats['p50'][idx]/1e4:.1f} 万")
-    print(f"  5% 分位: {stats['p5'][idx]/1e4:.1f} 万")
-    print(f"  95% 分位: {stats['p95'][idx]/1e4:.1f} 万")
+    adj_label = " (排除通胀)" if use_real else ""
+    print(f"\n=== 蒙特卡洛模拟统计 ({int(stats['years'][idx])}年){adj_label} ===")
+    print(f"  均值净值: {stats['mean'+suffix][idx]/1e4:.1f} 万")
+    print(f"  中位数净值: {stats['p50'+suffix][idx]/1e4:.1f} 万")
+    print(f"  5% 分位: {stats['p5'+suffix][idx]/1e4:.1f} 万")
+    print(f"  95% 分位: {stats['p95'+suffix][idx]/1e4:.1f} 万")
 
     sample = mc.results[0]
     print("\n=== 事件日志 (样本1) ===")
@@ -74,11 +83,13 @@ def print_single_results(mc, sim_params, det=None):
 # 对比模式绘图
 # ──────────────────────────────────────────
 
-def plot_compare(config_paths, mc_list):
+def plot_compare(config_paths, mc_list, inflation=True):
     """
     对比多个配置的财富增长曲线（净值分位数图）。
     每个配置用不同颜色，展示 p5-p95 带 + p25-p75 带 + p50 中位线 + mean 均值线。
     最多 5 个配置。
+    inflation : bool
+        True 表示名义值, False 表示排除通胀（实际购买力）
     """
     # 预定义 5 种对比色 (填充色, 线色)
     palette = [
@@ -91,6 +102,7 @@ def plot_compare(config_paths, mc_list):
 
     fig, ax = plt.subplots(figsize=(14, 7))
     divisor = 1e4
+    suffix = '' if inflation else '_noinf'
 
     for i, (cfg_path, mc) in enumerate(zip(config_paths, mc_list)):
         stats = mc.summary()
@@ -102,21 +114,21 @@ def plot_compare(config_paths, mc_list):
 
         # p5-p95 带状区间（浅色）
         ax.fill_between(years,
-                        stats["p5"] / divisor,
-                        stats["p95"] / divisor,
+                        stats["p5"+suffix] / divisor,
+                        stats["p95"+suffix] / divisor,
                         alpha=0.10, color=fill_color)
         # p25-p75 带状区间（中色）
         ax.fill_between(years,
-                        stats["p25"] / divisor,
-                        stats["p75"] / divisor,
+                        stats["p25"+suffix] / divisor,
+                        stats["p75"+suffix] / divisor,
                         alpha=0.20, color=fill_color,
                         label=f"{label} (IQR)")
         # p50 中位数线
-        ax.plot(years, stats["p50"] / divisor,
+        ax.plot(years, stats["p50"+suffix] / divisor,
                 color=line_color, lw=2,
                 label=f"{label} Median")
         # mean 均值线
-        ax.plot(years, stats["mean"] / divisor,
+        ax.plot(years, stats["mean"+suffix] / divisor,
                 color=line_color, lw=1.2, ls="--",
                 label=f"{label} Mean")
 
@@ -157,12 +169,19 @@ def main():
             paths = paths[:5]
 
         mc_list = []
+        infl_flags = []
         for p in paths:
-            mc, _ = run_single(p)
+            mc, sp = run_single(p)
             mc_list.append(mc)
+            infl_flags.append(sp['inflation_adjusted'])
+
+        # 如果所有配置的 inflation_adjusted 一致，统一使用；否则使用名义值
+        use_real = all(infl_flags) if all(f == infl_flags[0] for f in infl_flags) else False
+        if not use_real and any(infl_flags):
+            print("⚠️  各配置文件 inflation_adjusted 设置不一致，统一使用名义值绘图")
 
         print("\n📊 生成对比图...")
-        plot_compare(paths, mc_list)
+        plot_compare(paths, mc_list, inflation=not use_real)
         plt.show()
         print("\n✅ All OK!")
         return
@@ -180,9 +199,11 @@ def main():
 
     # 可视化
     print("\n📊 生成图表...")
-    mc.plot(title="Net Worth Projection")
-    mc.plot_assets_breakdown()
-    mc.plot_income_expense()
+    # inflation_adjusted=True 表示用实际购买力（排除通胀），对应 net_worth_matrix(inflation=False)
+    use_real = sim_params['inflation_adjusted']
+    mc.plot(title="Net Worth Projection", inflation=not use_real)
+    mc.plot_assets_breakdown(inflation=not use_real)
+    mc.plot_income_expense(inflation=not use_real)
     mc.plot_financial_freedom()
     plt.show()
 

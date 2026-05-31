@@ -13,6 +13,7 @@ start_year = 2027
 end_year = 2060
 n_samples = 500
 seed = 123
+inflation_adjusted = false
 
 [initial_assets]
 cash = 300_000
@@ -40,10 +41,10 @@ value = 3% ~ N(3%, 2%)
 # 支持的事件: buy_house, buy_car, job_change, marriage, birth, retirement, redistribute_invest, change_living_expense, change_invest_return
 # 触发年份写 auto 表示每年都触发
 
-# 结婚
+# 结婚（partner_income / extra_expense 按当前购买力填写，自动通胀换算）
 marriage | 2029 | partner_income=100_000 | extra_expense=30_000
 
-# 生子
+# 生子（child_cost / edu_cost 按当前购买力填写，自动通胀换算）
 birth | 2030 | child_cost=30_000 | edu_start_age=6 | edu_cost=10_000
 
 # 买车
@@ -52,7 +53,8 @@ buy_car | 2028 | car_price=100_000 | down_pct=50% | loan_years=3 | loan_rate=2.6
 # 买房
 buy_house | 2035 | house_price=3_000_000 | down_pct=30% | mortgage_years=30 | mortgage_rate=3.5% | appreciation=3%
 
-# 换工作
+# 换工作（new_salary 按当前购买力填写，程序自动通胀换算到 2033 年）
+# 也可用 raise_pct（涨薪比例，如 20%）或 raise_value（按当前购买力的涨薪绝对值）
 job_change | 2033 | new_salary=300_000 ~ N(300_000, 30_000)
 
 # 更换稳健投资

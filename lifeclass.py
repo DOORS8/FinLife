@@ -479,8 +479,9 @@ class MonteCarloSim:
         ))
         median_sim = self.results[median_idx]
         h = median_sim.history
-        income = h["total_income"] / divisor
-        expense = h["total_expense"] / divisor
+        infl_div = h["inflation_factor"] if not inflation else 1.0
+        income = h["total_income"] / infl_div / divisor
+        expense = h["total_expense"] / infl_div / divisor
         ax2.bar(years, income, width=0.8, color="green", alpha=0.6,
                 label="Income")
         ax2.bar(years, -expense, width=0.8, color="red", alpha=0.6,
@@ -494,17 +495,19 @@ class MonteCarloSim:
         plt.tight_layout()
         return fig
 
-    def plot_assets_breakdown(self, sim_index=-1, unit="W", figsize=(14, 5)):
+    def plot_assets_breakdown(self, sim_index=-1, unit="W", figsize=(14, 5),
+                               inflation=True):
         """绘制某条路径的资产结构堆叠图"""
         s = self.results[sim_index]
         h = s.history
         d = 1e4 if unit == "W" else 1
+        infl_div = h["inflation_factor"] if not inflation else 1.0
         years = h["year"]
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize, sharey=True)
         # 资产堆叠
         ax1.stackplot(years,
-                       h["cash"]/d, h["investments"]/d,
-                       h["real_estate"]/d, h["other_assets"]/d,
+                       h["cash"]/infl_div/d, h["investments"]/infl_div/d,
+                       h["real_estate"]/infl_div/d, h["other_assets"]/infl_div/d,
                        labels=["Cash", "Investments", "Real Estate", "Other"],
                        alpha=0.8)
         ax1.set_title("Assets Breakdown")
@@ -512,9 +515,10 @@ class MonteCarloSim:
         ax1.legend(loc="upper left")
         ax1.grid(True, alpha=0.3)
         # 净值 vs 负债
-        ax2.fill_between(years, 0, h["net_worth"]/d,
+        ax2.fill_between(years, 0, h["net_worth"]/infl_div/d,
                           color="steelblue", alpha=0.5, label="Net Worth")
-        ax2.fill_between(years, h["net_worth"]/d, h["total_assets"]/d,
+        ax2.fill_between(years, h["net_worth"]/infl_div/d,
+                          h["total_assets"]/infl_div/d,
                           color="tomato", alpha=0.5, label="Liabilities")
         ax2.set_title("Net Worth & Liabilities")
         ax2.legend(loc="upper left")
@@ -522,17 +526,20 @@ class MonteCarloSim:
         plt.tight_layout()
         return fig
 
-    def plot_income_expense(self, sim_index=-1, unit="W", figsize=(14, 5)):
+    def plot_income_expense(self, sim_index=-1, unit="W", figsize=(14, 5),
+                             inflation=True):
         """绘制某条路径的收入支出明细"""
         s = self.results[sim_index]
         h = s.history
         d = 1e4 if unit == "W" else 1
+        infl_div = h["inflation_factor"] if not inflation else 1.0
         years = h["year"]
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
         # 收入
         ax1.stackplot(years,
-                       h["income_salary"]/d, h["income_invest"]/d,
-                       h["income_other"]/d,
+                       h["income_salary"]/infl_div/d,
+                       h["income_invest"]/infl_div/d,
+                       h["income_other"]/infl_div/d,
                        labels=["Salary", "Investment", "Other"],
                        alpha=0.8, colors=["#2ca02c", "#1f77b4", "#ff7f0e"])
         ax1.set_title("Income")
@@ -541,9 +548,11 @@ class MonteCarloSim:
         ax1.grid(True, alpha=0.3)
         # 支出
         ax2.stackplot(years,
-                       h["expense_living"]/d, h["expense_mortgage"]/d,
-                       h["expense_car"]/d, h["expense_education"]/d,
-                       h["expense_other"]/d,
+                       h["expense_living"]/infl_div/d,
+                       h["expense_mortgage"]/infl_div/d,
+                       h["expense_car"]/infl_div/d,
+                       h["expense_education"]/infl_div/d,
+                       h["expense_other"]/infl_div/d,
                        labels=["Living", "Mortgage", "Car", "Education", "Other"],
                        alpha=0.8, colors=["#d62728", "#9467bd", "#8c564b",
                                           "#e377c2", "#7f7f7f"])
