@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinLife — 财务人生模拟器</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+</head>
+<body>
+<div id="app">
+  <!-- Header -->
+  <header>
+    <h1>FinLife</h1>
+    <p class="subtitle">蒙特卡洛财务人生模拟器</p>
+  </header>
+
+  <div class="main-layout">
+    <!-- Left: Config Editor -->
+    <section class="config-panel">
+      <div class="panel-header">
+        <h2>配置文件</h2>
+        <div class="config-actions">
+          <button id="loadDefaultBtn" class="btn btn-sm" title="恢复默认配置">默认</button>
+          <label for="uploadFile" class="btn btn-sm" title="上传 .txt 配置文件">上传</label>
+          <input type="file" id="uploadFile" accept=".txt" hidden>
+        </div>
+      </div>
+      <textarea id="configEditor" spellcheck="false"></textarea>
+      <div class="run-bar">
+        <label class="samples-label">
+          样本数:
+          <select id="samplesSelect">
+            <option value="50">50 (快速)</option>
+            <option value="100">100</option>
+            <option value="200" selected>200 (推荐)</option>
+            <option value="500">500 (精确)</option>
+          </select>
+        </label>
+        <button id="runBtn" class="btn btn-primary">▶ 运行模拟</button>
+      </div>
+    </section>
+
+    <!-- Right: Results -->
+    <section class="results-panel">
+      <!-- Loading overlay -->
+      <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p id="loadingText">正在加载 Pyodide ...</p>
+      </div>
+
+      <!-- Placeholder when no results -->
+      <div id="placeholder" class="placeholder">
+        <p>编辑左侧配置文件，点击「运行模拟」开始</p>
+      </div>
+
+      <!-- Results content (hidden initially) -->
+      <div id="resultsContent" class="results-content hidden">
+        <!-- Deterministic Stats -->
+        <div class="result-section">
+          <h3>确定性模拟最终状态</h3>
+          <div class="stat-grid" id="detStats"></div>
+        </div>
+
+        <!-- MC Stats -->
+        <div class="result-section">
+          <h3>蒙特卡洛模拟统计</h3>
+          <div class="stat-grid" id="mcStats"></div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="result-section">
+          <h3>事件日志 (样本 1)</h3>
+          <div class="event-log" id="eventLog"></div>
+        </div>
+
+        <!-- Financial Freedom -->
+        <div class="result-section">
+          <h3>财务自由概率</h3>
+          <div class="fi-table-wrap" id="fiTable"></div>
+        </div>
+
+        <!-- Plots -->
+        <div class="result-section">
+          <h3>图表</h3>
+          <div class="plot-grid" id="plotGrid"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
