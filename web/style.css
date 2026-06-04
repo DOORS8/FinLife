@@ -474,8 +474,30 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 
 /* ── Responsive ── */
 @media (max-width: 860px) {
-  .main-layout { flex-direction: column; }
-  .config-panel { width: 100%; min-width: unset; }
-  .config-form { min-height: 300px; }
-  #configEditor { min-height: 250px; }
+  #app { height: auto; }
+  .main-layout { display: block; min-height: unset; }
+  .config-panel {
+    width: 100%;
+    min-width: unset;
+    max-height: 50vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .config-form {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  #configEditor {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .results-panel {
+    overflow-y: visible;
+    position: static;
+    min-width: unset;
+  }
+  .placeholder { height: 80px; }
+  .loading-overlay { position: fixed; inset: 0; border-radius: 0; z-index: 100; }
 }

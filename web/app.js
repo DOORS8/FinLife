@@ -767,7 +767,7 @@ function toggleMode() {
   } else {
     // Switch back to form
     expertMode.style.display = 'none';
-    formMode.style.display = 'flex';
+    formMode.style.display = '';
     $('toggleModeBtn').textContent = '专家模式';
   }
 }
