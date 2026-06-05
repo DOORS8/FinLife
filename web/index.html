@@ -57,6 +57,10 @@
             <div class="field-row">
               <label>负债<input type="number" id="f_liabilities" value="0" class="fnum"></label>
             </div>
+            <div class="assets-summary" id="assetsSummary">
+              <span>总资产: <strong id="totalAssetsDisplay">450,000</strong></span>
+              <span>净资产: <strong id="netAssetsDisplay">450,000</strong></span>
+            </div>
           </div>
         </details>
 
@@ -301,7 +305,7 @@
         <label>触发年份
           <input type="number" id="em_trigger_year" value="2030" class="fnum" style="width:100px">
         </label>
-        <label class="chk-label"><input type="checkbox" id="em_trigger_auto"> 每年触发 (auto)</label>
+        <label class="chk-label" id="em_trigger_auto_label"><input type="checkbox" id="em_trigger_auto"> 每年触发 (auto)</label>
       </div>
 
       <!-- Event-specific fields (shown/hidden by type) -->
@@ -462,7 +466,7 @@
           <p class="em-hint">退休：工资归零，生活费降至 70%</p>
         </div>
         <div class="em-fields-group" data-type="redistribute_invest">
-          <p class="em-hint">投资再平衡：每年将超额现金转入投资</p>
+          <p class="em-hint">投资再平衡：将超额现金转入投资。可选择「每年触发」或在指定年份触发。</p>
         </div>
       </div>
     </div>

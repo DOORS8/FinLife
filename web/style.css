@@ -178,6 +178,23 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
   cursor: pointer;
 }
 
+/* ── Assets Summary ── */
+.assets-summary {
+  display: flex;
+  gap: 16px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 4px 0 2px;
+  border-top: 1px solid var(--border-light);
+  margin-top: 4px;
+}
+
+.assets-summary strong {
+  font-family: var(--font-mono);
+  color: var(--text);
+  font-weight: 600;
+}
+
 /* ── Event List ── */
 .event-list {
   max-height: 220px;

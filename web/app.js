@@ -249,8 +249,12 @@ function enableModalFields(type) {
       if (inp.type !== 'radio' || inp.name.startsWith('em_')) inp.disabled = false;
     });
   }
-  // Show/hide trigger year row
-  $('em_trigger_row').style.display = (type === 'retirement' || type === 'redistribute_invest') ? 'none' : 'flex';
+  // Show/hide trigger year row — hide only for retirement (must pick a specific year)
+  // redistribute_invest: show trigger row so user can choose auto vs. specific year
+  $('em_trigger_row').style.display = (type === 'retirement') ? 'none' : 'flex';
+  // Hide "每年触发" checkbox for one-off events (marriage, birth, buy_house, buy_car, job_change)
+  const autoAllowed = ['change_living_expense', 'change_invest_return', 'redistribute_invest'];
+  $('em_trigger_auto_label').style.display = autoAllowed.includes(type) ? '' : 'none';
 }
 
 function showEventTypeFields(type) {
@@ -402,7 +406,7 @@ function eventSummary(e) {
     case 'change_living_expense': return p.raise_pct ? `+${(p.raise_pct*100).toFixed(0)}%` : p.raise_value ? `+${(p.raise_value/1e4).toFixed(1)}W` : '调整生活成本';
     case 'change_invest_return': return `回报率→${(p.new_return?.base_value*100).toFixed(1)||'?'}%`;
     case 'retirement': return '工资归零';
-    case 'redistribute_invest': return '每年自动执行';
+    case 'redistribute_invest': return e.year === 'auto' ? '每年自动执行' : `${e.year}年执行`;
     default: return '';
   }
 }
@@ -466,7 +470,7 @@ function valueLine(key, baseVal, distType, distParams, isPct, annChange) {
 
   let result = `value = ${valStr}\n`;
   if (annChange != null && annChange !== 0) {
-    result += `annual_change_rate = ${(annChange / 100).toFixed(2)}%\n`;
+    result += `annual_change_rate = ${annChange.toFixed(2)}%\n`;
   }
   return result;
 }
@@ -817,6 +821,9 @@ function resetToDefault() {
   // Update all distribution fields
   DIST_CHANGE_IDS.forEach(id => updateDistFields(id));
 
+  // Update assets summary
+  updateAssetsSummary();
+
   // Reset events
   events = [];
   renderEventList();
@@ -824,6 +831,24 @@ function resetToDefault() {
   // Clear results
   $('resultsContent').classList.add('hidden');
   $('placeholder').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════
+//  Assets Summary (real-time total & net)
+// ════════════════════════════════════════════
+
+const ASSET_FIELD_IDS = ['f_cash', 'f_investments', 'f_real_estate', 'f_other_assets', 'f_liabilities'];
+
+function updateAssetsSummary() {
+  const cash = collectFormValue('f_cash');
+  const investments = collectFormValue('f_investments');
+  const realEstate = collectFormValue('f_real_estate');
+  const other = collectFormValue('f_other_assets');
+  const liabilities = collectFormValue('f_liabilities');
+  const total = cash + investments + realEstate + other;
+  const net = total - liabilities;
+  $('totalAssetsDisplay').textContent = total.toLocaleString('zh-CN');
+  $('netAssetsDisplay').textContent = net.toLocaleString('zh-CN');
 }
 
 // ════════════════════════════════════════════
@@ -835,12 +860,32 @@ function resetToDefault() {
   DIST_CHANGE_IDS.forEach(id => setupDistToggle(id));
   // Init dist fields
   DIST_CHANGE_IDS.forEach(id => updateDistFields(id));
+  // Assets summary live update
+  ASSET_FIELD_IDS.forEach(id => {
+    const el = $(id);
+    if (el) el.addEventListener('input', updateAssetsSummary);
+  });
+  updateAssetsSummary();
   // Modal dist toggles
   ['em_jc_dist', 'em_cle_dist', 'em_cir_dist'].forEach(id => setupModalDistToggle(id));
 
   // Event type change in modal
   $('em_type').addEventListener('change', () => {
-    enableModalFields($('em_type').value);
+    const type = $('em_type').value;
+    enableModalFields(type);
+    const autoAllowed = ['change_living_expense', 'change_invest_return', 'redistribute_invest'];
+    const isEditing = parseInt($('em_edit_idx').value, 10) >= 0;
+    if (autoAllowed.includes(type)) {
+      // For redistribute_invest on new events, default to auto trigger
+      if (type === 'redistribute_invest' && !isEditing) {
+        $('em_trigger_auto').checked = true;
+        $('em_trigger_year').disabled = true;
+      }
+    } else {
+      // One-off events: uncheck auto and enable year input
+      $('em_trigger_auto').checked = false;
+      $('em_trigger_year').disabled = false;
+    }
   });
 
   // Auto checkbox
