@@ -74,9 +74,7 @@
                 <select id="f_salary_dist" class="fdist">
                   <option value="fixed">固定值</option>
                   <option value="normal" selected>正态 N</option>
-                  <option value="lognormal">对数正态 LN</option>
                   <option value="uniform">均匀 U</option>
-                  <option value="triangular">三角 T</option>
                 </select>
               </label>
             </div>
@@ -85,18 +83,9 @@
                 <label>均值<input type="number" id="f_salary_n_mean" value="400000" class="fnum"></label>
                 <label>标准差<input type="number" id="f_salary_n_std" value="40000" class="fnum"></label>
               </div>
-              <div class="field-row" data-dist="lognormal" style="display:none">
-                <label>μ (mu)<input type="number" id="f_salary_ln_mu" value="12.9" class="fnum" step="0.01"></label>
-                <label>σ (sigma)<input type="number" id="f_salary_ln_sigma" value="0.1" class="fnum" step="0.01"></label>
-              </div>
               <div class="field-row" data-dist="uniform" style="display:none">
                 <label>下限<input type="number" id="f_salary_u_lo" value="360000" class="fnum"></label>
                 <label>上限<input type="number" id="f_salary_u_hi" value="440000" class="fnum"></label>
-              </div>
-              <div class="field-row" data-dist="triangular" style="display:none">
-                <label>下限<input type="number" id="f_salary_t_lo" value="350000" class="fnum"></label>
-                <label>众数<input type="number" id="f_salary_t_mode" value="400000" class="fnum"></label>
-                <label>上限<input type="number" id="f_salary_t_hi" value="450000" class="fnum"></label>
               </div>
             </div>
             <div class="field-row">
@@ -115,9 +104,7 @@
                 <select id="f_expense_dist" class="fdist">
                   <option value="fixed">固定值</option>
                   <option value="normal" selected>正态 N</option>
-                  <option value="lognormal">对数正态 LN</option>
                   <option value="uniform">均匀 U</option>
-                  <option value="triangular">三角 T</option>
                 </select>
               </label>
             </div>
@@ -126,18 +113,9 @@
                 <label>均值<input type="number" id="f_expense_n_mean" value="100000" class="fnum"></label>
                 <label>标准差<input type="number" id="f_expense_n_std" value="10000" class="fnum"></label>
               </div>
-              <div class="field-row" data-dist="lognormal" style="display:none">
-                <label>μ (mu)<input type="number" id="f_expense_ln_mu" value="11.5" class="fnum" step="0.01"></label>
-                <label>σ (sigma)<input type="number" id="f_expense_ln_sigma" value="0.1" class="fnum" step="0.01"></label>
-              </div>
               <div class="field-row" data-dist="uniform" style="display:none">
                 <label>下限<input type="number" id="f_expense_u_lo" value="90000" class="fnum"></label>
                 <label>上限<input type="number" id="f_expense_u_hi" value="110000" class="fnum"></label>
-              </div>
-              <div class="field-row" data-dist="triangular" style="display:none">
-                <label>下限<input type="number" id="f_expense_t_lo" value="80000" class="fnum"></label>
-                <label>众数<input type="number" id="f_expense_t_mode" value="100000" class="fnum"></label>
-                <label>上限<input type="number" id="f_expense_t_hi" value="120000" class="fnum"></label>
               </div>
             </div>
             <div class="field-row">
@@ -157,7 +135,6 @@
                   <option value="fixed">固定值</option>
                   <option value="normal" selected>正态 N</option>
                   <option value="uniform">均匀 U</option>
-                  <option value="triangular">三角 T</option>
                 </select>
               </label>
             </div>
@@ -169,11 +146,6 @@
               <div class="field-row" data-dist="uniform" style="display:none">
                 <label>下限<input type="number" id="f_invret_u_lo" value="5" class="fnum pct" step="0.1"> %</label>
                 <label>上限<input type="number" id="f_invret_u_hi" value="11" class="fnum pct" step="0.1"> %</label>
-              </div>
-              <div class="field-row" data-dist="triangular" style="display:none">
-                <label>下限<input type="number" id="f_invret_t_lo" value="3" class="fnum pct" step="0.1"> %</label>
-                <label>众数<input type="number" id="f_invret_t_mode" value="8" class="fnum pct" step="0.1"> %</label>
-                <label>上限<input type="number" id="f_invret_t_hi" value="13" class="fnum pct" step="0.1"> %</label>
               </div>
             </div>
           </div>
@@ -190,7 +162,6 @@
                   <option value="fixed">固定值</option>
                   <option value="normal" selected>正态 N</option>
                   <option value="uniform">均匀 U</option>
-                  <option value="triangular">三角 T</option>
                 </select>
               </label>
             </div>
@@ -202,11 +173,6 @@
               <div class="field-row" data-dist="uniform" style="display:none">
                 <label>下限<input type="number" id="f_infl_u_lo" value="1" class="fnum pct" step="0.1"> %</label>
                 <label>上限<input type="number" id="f_infl_u_hi" value="5" class="fnum pct" step="0.1"> %</label>
-              </div>
-              <div class="field-row" data-dist="triangular" style="display:none">
-                <label>下限<input type="number" id="f_infl_t_lo" value="1" class="fnum pct" step="0.1"> %</label>
-                <label>众数<input type="number" id="f_infl_t_mode" value="3" class="fnum pct" step="0.1"> %</label>
-                <label>上限<input type="number" id="f_infl_t_hi" value="5" class="fnum pct" step="0.1"> %</label>
               </div>
             </div>
           </div>
@@ -366,7 +332,6 @@
                 <option value="fixed">固定值</option>
                 <option value="normal" selected>正态 N</option>
                 <option value="uniform">均匀 U</option>
-                <option value="triangular">三角 T</option>
               </select>
             </label>
           </div>
@@ -378,11 +343,6 @@
             <div class="field-row jc-dist-group" data-dist="uniform" style="display:none">
               <label>下限<input type="number" id="em_jc_u_lo" value="270000" class="fnum"></label>
               <label>上限<input type="number" id="em_jc_u_hi" value="330000" class="fnum"></label>
-            </div>
-            <div class="field-row jc-dist-group" data-dist="triangular" style="display:none">
-              <label>下限<input type="number" id="em_jc_t_lo" value="250000" class="fnum"></label>
-              <label>众数<input type="number" id="em_jc_t_mode" value="300000" class="fnum"></label>
-              <label>上限<input type="number" id="em_jc_t_hi" value="350000" class="fnum"></label>
             </div>
           </div>
           <div class="field-row jc-pct-row" style="display:none">
@@ -406,7 +366,6 @@
                 <option value="fixed">固定值</option>
                 <option value="normal" selected>正态 N</option>
                 <option value="uniform">均匀 U</option>
-                <option value="triangular">三角 T</option>
               </select>
             </label>
           </div>
@@ -418,11 +377,6 @@
             <div class="field-row cle-dist-group" data-dist="uniform" style="display:none">
               <label>下限<input type="number" id="em_cle_u_lo" value="110000" class="fnum"></label>
               <label>上限<input type="number" id="em_cle_u_hi" value="130000" class="fnum"></label>
-            </div>
-            <div class="field-row cle-dist-group" data-dist="triangular" style="display:none">
-              <label>下限<input type="number" id="em_cle_t_lo" value="100000" class="fnum"></label>
-              <label>众数<input type="number" id="em_cle_t_mode" value="120000" class="fnum"></label>
-              <label>上限<input type="number" id="em_cle_t_hi" value="140000" class="fnum"></label>
             </div>
           </div>
           <div class="field-row cle-pct-row" style="display:none">
@@ -441,7 +395,6 @@
                 <option value="fixed">固定值</option>
                 <option value="normal" selected>正态 N</option>
                 <option value="uniform">均匀 U</option>
-                <option value="triangular">三角 T</option>
               </select>
             </label>
           </div>
@@ -453,11 +406,6 @@
             <div class="field-row" data-dist="uniform" style="display:none">
               <label>下限%<input type="number" id="em_cir_u_lo" value="3" class="fnum pct" step="0.1"></label>
               <label>上限%<input type="number" id="em_cir_u_hi" value="9" class="fnum pct" step="0.1"></label>
-            </div>
-            <div class="field-row" data-dist="triangular" style="display:none">
-              <label>下限%<input type="number" id="em_cir_t_lo" value="2" class="fnum pct" step="0.1"></label>
-              <label>众数%<input type="number" id="em_cir_t_mode" value="6" class="fnum pct" step="0.1"></label>
-              <label>上限%<input type="number" id="em_cir_t_hi" value="10" class="fnum pct" step="0.1"></label>
             </div>
           </div>
         </div>

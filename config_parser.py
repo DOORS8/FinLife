@@ -17,10 +17,8 @@ config_parser.py - 财务人生模拟器配置文件解析器
 3. 参数值格式：
    - 固定值:        100_000
    - 正态分布:      100_000 ~ N(100_000, 10_000)
-   - 对数正态分布:   100_000 ~ LN(11.5, 0.2)
    - 均匀分布:      100_000 ~ U(80_000, 120_000)
-   - 三角分布:      100_000 ~ T(80_000, 100_000, 120_000)
-
+   
 4. 百分比支持:
    - 0.049  或  4.9%  均可，% 会自动转换为小数
 
@@ -75,9 +73,7 @@ def _parse_param_value(s):
       100_000 ~ N(100_000, 10_000)              → normal
       6% ~ N(6%, 15%)                           → normal (百分比)
       100_000 ~ U(80_000, 120_000)              → uniform
-      100_000 ~ LN(11.5, 0.2)                   → lognormal
-      100_000 ~ T(80_000, 100_000, 120_000)     → triangular
-    """
+                """
     s = s.strip()
     tilde_idx = s.find('~')
     if tilde_idx == -1:
@@ -103,10 +99,10 @@ def _parse_param_value(s):
     else:
         dist_params = tuple(float(p.replace('_', '')) for p in raw_params)
 
-    dist_type_map = {'N': 'normal', 'LN': 'lognormal', 'U': 'uniform', 'T': 'triangular'}
+    dist_type_map = {'N': 'normal', 'U': 'uniform'}
     dist_type = dist_type_map.get(dist_name)
     if dist_type is None:
-        raise ValueError(f"未知分布类型: {dist_name}，支持: N, LN, U, T")
+        raise ValueError(f"未知分布类型: {dist_name}，支持: N, U")
 
     return {"value": base_value, "dist_type": dist_type,
             "dist_params": dist_params, "annual_change_rate": 0.0}

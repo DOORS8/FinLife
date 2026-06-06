@@ -233,10 +233,6 @@ function fillModalDistParams(prefix, distType, params) {
   } else if (distType === 'uniform' && arr.length >= 2) {
     $(`${prefix}_u_lo`).value = arr[0];
     $(`${prefix}_u_hi`).value = arr[1];
-  } else if (distType === 'triangular' && arr.length >= 3) {
-    $(`${prefix}_t_lo`).value = arr[0];
-    $(`${prefix}_t_mode`).value = arr[1];
-    $(`${prefix}_t_hi`).value = arr[2];
   }
 }
 
@@ -345,7 +341,6 @@ function readModalDistParams(prefix, distType) {
   if (distType === 'fixed') return null;
   if (distType === 'normal') return [parseFloat($(`${prefix}_n_mean`).value) || 0, parseFloat($(`${prefix}_n_std`).value) || 0];
   if (distType === 'uniform') return [parseFloat($(`${prefix}_u_lo`).value) || 0, parseFloat($(`${prefix}_u_hi`).value) || 0];
-  if (distType === 'triangular') return [parseFloat($(`${prefix}_t_lo`).value) || 0, parseFloat($(`${prefix}_t_mode`).value) || 0];
   return null;
 }
 
@@ -463,7 +458,7 @@ function valueLine(key, baseVal, distType, distParams, isPct, annChange) {
 
   if (distType !== 'fixed' && distParams) {
     const params = distParams.map(v => isPct ? v.toFixed(1) + '%' : v.toString()).join(', ');
-    const distMap = { normal: 'N', uniform: 'U', triangular: 'T', lognormal: 'LN' };
+    const distMap = { normal: 'N', uniform: 'U' };
     const abbrev = distMap[distType] || distType;
     valStr += ` ~ ${abbrev}(${params})`;
   }
@@ -526,7 +521,7 @@ function eventToString(e) {
 }
 
 function distAbbrev(param) {
-  return { normal: 'N', uniform: 'U', triangular: 'T', lognormal: 'LN' }[param.dist_type] || param.dist_type;
+  return { normal: 'N', uniform: 'U' }[param.dist_type] || param.dist_type;
 }
 
 function distParamsStr(param) {
@@ -619,9 +614,7 @@ function readDistParams(prefix) {
   const distType = $(`${prefix}_dist`).value;
   if (distType === 'fixed') return null;
   if (distType === 'normal') return [collectFormValue(`${prefix}_n_mean`) || collectFormValue(`${prefix}_val`), collectFormValue(`${prefix}_n_std`)];
-  if (distType === 'lognormal') return [parseFloat($(`${prefix}_ln_mu`).value) || 0, parseFloat($(`${prefix}_ln_sigma`).value) || 0];
   if (distType === 'uniform') return [collectFormValue(`${prefix}_u_lo`), collectFormValue(`${prefix}_u_hi`)];
-  if (distType === 'triangular') return [collectFormValue(`${prefix}_t_lo`), collectFormValue(`${prefix}_t_mode`) || collectFormValue(`${prefix}_val`), collectFormValue(`${prefix}_t_hi`)];
   return null;
 }
 
@@ -787,21 +780,15 @@ function resetToDefault() {
     f_start_year: 2027, f_end_year: 2060, f_seed: 123,
     f_cash: 300000, f_investments: 150000, f_real_estate: 0, f_other_assets: 0, f_liabilities: 0,
     f_salary_val: 400000, f_salary_n_mean: 400000, f_salary_n_std: 40000,
-    f_salary_ln_mu: 12.9, f_salary_ln_sigma: 0.1,
     f_salary_u_lo: 360000, f_salary_u_hi: 440000,
-    f_salary_t_lo: 350000, f_salary_t_mode: 400000, f_salary_t_hi: 450000,
     f_salary_ann: 3,
     f_expense_val: 100000, f_expense_n_mean: 100000, f_expense_n_std: 10000,
-    f_expense_ln_mu: 11.5, f_expense_ln_sigma: 0.1,
     f_expense_u_lo: 90000, f_expense_u_hi: 110000,
-    f_expense_t_lo: 80000, f_expense_t_mode: 100000, f_expense_t_hi: 120000,
     f_expense_ann: 3,
     f_invret_val: 8, f_invret_n_mean: 8, f_invret_n_std: 18,
     f_invret_u_lo: 5, f_invret_u_hi: 11,
-    f_invret_t_lo: 3, f_invret_t_mode: 8, f_invret_t_hi: 13,
     f_infl_val: 3, f_infl_n_mean: 3, f_infl_n_std: 2,
     f_infl_u_lo: 1, f_infl_u_hi: 5,
-    f_infl_t_lo: 1, f_infl_t_mode: 3, f_infl_t_hi: 5,
   };
 
   for (const [id, val] of Object.entries(defaults)) {

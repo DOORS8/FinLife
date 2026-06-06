@@ -75,15 +75,9 @@ class Parameter:
         elif self.dist_type == "normal":
             mean, std = self.dist_params
             return float(rng.normal(mean, std))
-        elif self.dist_type == "lognormal":
-            mu, sigma = self.dist_params
-            return float(np.exp(rng.normal(mu, sigma)))
         elif self.dist_type == "uniform":
             lo, hi = self.dist_params
             return float(rng.uniform(lo, hi))
-        elif self.dist_type == "triangular":
-            lo, mode, hi = self.dist_params
-            return float(rng.triangular(lo, mode, hi))
         else:
             raise ValueError(f"Unknown dist_type: {self.dist_type}")
 
@@ -93,16 +87,11 @@ class Parameter:
             return self.base_value
         elif self.dist_type == "normal":
             return self.dist_params[0]
-        elif self.dist_type == "lognormal":
-            mu, sigma = self.dist_params
-            return np.exp(mu + sigma ** 2 / 2)
         elif self.dist_type == "uniform":
             lo, hi = self.dist_params
             return (lo + hi) / 2
-        elif self.dist_type == "triangular":
-            lo, mode, hi = self.dist_params
-            return (lo + mode + hi) / 3
-        return self.base_value
+        else:
+            raise ValueError(f"Unknown dist_type: {self.dist_type}")
 
 
 # ============================================================

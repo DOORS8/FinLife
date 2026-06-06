@@ -4,7 +4,7 @@
 #   - 以 # 开头的行为注释
 #   - [section] 定义段落
 #   - key = value 定义参数
-#   - Parameter: value | value ~ N(mean, std) | value ~ U(lo, hi) | value ~ LN(mu, sigma) | value ~ T(lo, mode, hi)
+#   - Parameter: value | value ~ N(mean, std) | value ~ U(lo, hi)
 #   - 百分比: 0.03 或 3% 均可
 # ============================================================
 
