@@ -18,9 +18,27 @@ inflation_adjusted = false
 [initial_assets]
 cash = 300_000
 investments = 150_000
-real_estate = 0
-other_assets = 0
-liabilities = 0
+
+# 初始房产（可选）：模拟开始时已持有的房产及其按揭贷款
+# 如果不需要初始房产，删除整个段或设 value = 0 即可
+[initial_house]
+value = 0
+# 示例：已持有市值 300 万的房产，剩余贷款 200 万，剩余 25 年，利率 3.5%，年增值 3%
+# value = 3_000_000
+# remaining_mortgage = 2_000_000
+# remaining_years = 25
+# mortgage_rate = 3.5%
+# appreciation = 3%
+
+# 初始车产（可选）：模拟开始时已持有的车辆及其车贷
+# 如果不需要初始车产，删除整个段或设 value = 0 即可
+[initial_car]
+value = 0
+# 示例：已持有市值 10 万的车，剩余贷款 5 万，剩余 2 年，利率 2.6%
+# value = 100_000
+# remaining_loan = 50_000
+# remaining_years = 2
+# loan_rate = 2.6%
 
 [salary]
 value = 400_000 ~ N(400_000, 40_000)

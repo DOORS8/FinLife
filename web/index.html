@@ -50,17 +50,49 @@
               <label>现金<input type="number" id="f_cash" value="300000" class="fnum"></label>
               <label>投资<input type="number" id="f_investments" value="150000" class="fnum"></label>
             </div>
-            <div class="field-row">
-              <label>房产<input type="number" id="f_real_estate" value="0" class="fnum"></label>
-              <label>其他资产<input type="number" id="f_other_assets" value="0" class="fnum"></label>
-            </div>
-            <div class="field-row">
-              <label>负债<input type="number" id="f_liabilities" value="0" class="fnum"></label>
-            </div>
             <div class="assets-summary" id="assetsSummary">
               <span>总资产: <strong id="totalAssetsDisplay">450,000</strong></span>
               <span>净资产: <strong id="netAssetsDisplay">450,000</strong></span>
             </div>
+          </div>
+        </details>
+
+        <!-- Section: 初始房产（可选） -->
+        <details class="cfg-section">
+          <summary>初始房产（可选）</summary>
+          <div class="section-body">
+            <div class="field-row">
+              <label>房产市值<input type="number" id="f_house_val" value="0" class="fnum"></label>
+              <label>剩余贷款<input type="number" id="f_house_mortgage" value="0" class="fnum"></label>
+            </div>
+            <div class="field-row">
+              <label>剩余年数<input type="number" id="f_house_years" value="25" class="fnum"></label>
+              <label>利率<input type="number" id="f_house_rate" value="3.5" class="fnum pct" step="0.1"> %</label>
+            </div>
+            <div class="field-row">
+              <label>年增值率<input type="number" id="f_house_appr" value="3" class="fnum pct" step="0.1"> %</label>
+            </div>
+            <p style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">
+              已在模拟开始时持有一套房产（含按揭）。设房产市值为 0 则不启用。
+            </p>
+          </div>
+        </details>
+
+        <!-- Section: 初始车产（可选） -->
+        <details class="cfg-section">
+          <summary>初始车产（可选）</summary>
+          <div class="section-body">
+            <div class="field-row">
+              <label>车产价值<input type="number" id="f_car_val" value="0" class="fnum"></label>
+              <label>剩余贷款<input type="number" id="f_car_loan" value="0" class="fnum"></label>
+            </div>
+            <div class="field-row">
+              <label>剩余年数<input type="number" id="f_car_years" value="2" class="fnum"></label>
+              <label>利率<input type="number" id="f_car_rate" value="2.6" class="fnum pct" step="0.1"> %</label>
+            </div>
+            <p style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">
+              已在模拟开始时持有一辆车（含车贷）。设车产价值为 0 则不启用。
+            </p>
           </div>
         </details>
 

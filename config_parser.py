@@ -8,6 +8,8 @@ config_parser.py - 财务人生模拟器配置文件解析器
 2. [section] 定义段落，支持的段落：
    - [simulation]       模拟参数
    - [initial_assets]   初始资产
+   - [initial_house]    初始房产（含按揭贷款），可选
+   - [initial_car]      初始车产（含车贷），可选
    - [salary]           工资参数
    - [living_expense]   生活费参数
    - [investment_return] 投资回报率参数
@@ -213,6 +215,8 @@ def parse_config(filepath):
     result = {}
     result['simulation'] = _parse_key_value_section(sections.get('simulation', []))
     result['initial_assets'] = _parse_key_value_section(sections.get('initial_assets', []))
+    result['initial_house'] = _parse_key_value_section(sections.get('initial_house', []))
+    result['initial_car'] = _parse_key_value_section(sections.get('initial_car', []))
 
     for param_name in ['salary', 'living_expense', 'investment_return', 'inflation_rate']:
         section_lines = sections.get(param_name, [])
@@ -249,15 +253,44 @@ def create_sim_from_config(config):
     sim = FinanceLifeSim(
         init_cash=assets_cfg.get('cash', 0),
         init_investments=assets_cfg.get('investments', 0),
-        init_real_estate=assets_cfg.get('real_estate', 0),
-        init_other_assets=assets_cfg.get('other_assets', 0),
-        init_liabilities=assets_cfg.get('liabilities', 0),
+        init_real_estate=0,
+        init_other_assets=0,
+        init_liabilities=0,
         salary=config['salary'],
         living_expense=config['living_expense'],
         investment_return=config['investment_return'],
         inflation_rate=config['inflation_rate'],
         start_year=start_year,
     )
+
+    # --- 初始房产（含按揭贷款）---
+    house_cfg = config.get('initial_house', {})
+    if house_cfg.get('value', 0) > 0:
+        sim.real_estate = house_cfg['value']
+        sim.house_appreciation_rate = house_cfg.get('appreciation', 0.0)
+        rem_mortgage = house_cfg.get('remaining_mortgage', 0)
+        if rem_mortgage > 0:
+            sim.liabilities += rem_mortgage
+            sim.mortgages.append({
+                'remaining': rem_mortgage,
+                'annual_rate': house_cfg.get('mortgage_rate', 0.035),
+                'total_years': house_cfg.get('remaining_years', 30),
+                'start_year': sim.current_year,
+            })
+
+    # --- 初始车产（含车贷）---
+    car_cfg = config.get('initial_car', {})
+    if car_cfg.get('value', 0) > 0:
+        sim.other_assets += car_cfg['value']
+        rem_loan = car_cfg.get('remaining_loan', 0)
+        if rem_loan > 0:
+            sim.liabilities += rem_loan
+            sim.car_loans.append({
+                'remaining': rem_loan,
+                'annual_rate': car_cfg.get('loan_rate', 0.03),
+                'total_years': car_cfg.get('remaining_years', 3),
+                'start_year': sim.current_year,
+            })
 
     end_year = int(sim_cfg.get('end_year', 2060))
     for event_type, trigger_year, kwargs in config['events']:

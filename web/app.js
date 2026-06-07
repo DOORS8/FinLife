@@ -555,10 +555,30 @@ function buildConfigText(nSamples) {
   lines.push('[initial_assets]');
   lines.push(`cash = ${Math.round(collectFormValue('f_cash'))}`);
   lines.push(`investments = ${Math.round(collectFormValue('f_investments'))}`);
-  lines.push(`real_estate = ${Math.round(collectFormValue('f_real_estate'))}`);
-  lines.push(`other_assets = ${Math.round(collectFormValue('f_other_assets'))}`);
-  lines.push(`liabilities = ${Math.round(collectFormValue('f_liabilities'))}`);
   lines.push('');
+
+  // initial_house (only if value > 0)
+  const houseVal = collectFormValue('f_house_val');
+  if (houseVal > 0) {
+    lines.push('[initial_house]');
+    lines.push(`value = ${Math.round(houseVal)}`);
+    lines.push(`remaining_mortgage = ${Math.round(collectFormValue('f_house_mortgage'))}`);
+    lines.push(`remaining_years = ${parseInt($('f_house_years').value, 10) || 25}`);
+    lines.push(`mortgage_rate = ${(collectFormValue('f_house_rate') / 100).toFixed(4)}`);
+    lines.push(`appreciation = ${(collectFormValue('f_house_appr') / 100).toFixed(4)}`);
+    lines.push('');
+  }
+
+  // initial_car (only if value > 0)
+  const carVal = collectFormValue('f_car_val');
+  if (carVal > 0) {
+    lines.push('[initial_car]');
+    lines.push(`value = ${Math.round(carVal)}`);
+    lines.push(`remaining_loan = ${Math.round(collectFormValue('f_car_loan'))}`);
+    lines.push(`remaining_years = ${parseInt($('f_car_years').value, 10) || 2}`);
+    lines.push(`loan_rate = ${(collectFormValue('f_car_rate') / 100).toFixed(4)}`);
+    lines.push('');
+  }
 
   // salary
   lines.push('[salary]');
@@ -778,7 +798,7 @@ function resetToDefault() {
   // We'll just reload the defaults from the HTML attributes
   const defaults = {
     f_start_year: 2027, f_end_year: 2060, f_seed: 123,
-    f_cash: 300000, f_investments: 150000, f_real_estate: 0, f_other_assets: 0, f_liabilities: 0,
+    f_cash: 300000, f_investments: 150000,
     f_salary_val: 400000, f_salary_n_mean: 400000, f_salary_n_std: 40000,
     f_salary_u_lo: 360000, f_salary_u_hi: 440000,
     f_salary_ann: 3,
@@ -789,6 +809,8 @@ function resetToDefault() {
     f_invret_u_lo: 5, f_invret_u_hi: 11,
     f_infl_val: 3, f_infl_n_mean: 3, f_infl_n_std: 2,
     f_infl_u_lo: 1, f_infl_u_hi: 5,
+    f_house_val: 0, f_house_mortgage: 0, f_house_years: 25, f_house_rate: 3.5, f_house_appr: 3,
+    f_car_val: 0, f_car_loan: 0, f_car_years: 2, f_car_rate: 2.6,
   };
 
   for (const [id, val] of Object.entries(defaults)) {
@@ -824,16 +846,17 @@ function resetToDefault() {
 //  Assets Summary (real-time total & net)
 // ════════════════════════════════════════════
 
-const ASSET_FIELD_IDS = ['f_cash', 'f_investments', 'f_real_estate', 'f_other_assets', 'f_liabilities'];
+const ASSET_FIELD_IDS = ['f_cash', 'f_investments', 'f_house_val', 'f_house_mortgage', 'f_car_val', 'f_car_loan'];
 
 function updateAssetsSummary() {
   const cash = collectFormValue('f_cash');
   const investments = collectFormValue('f_investments');
-  const realEstate = collectFormValue('f_real_estate');
-  const other = collectFormValue('f_other_assets');
-  const liabilities = collectFormValue('f_liabilities');
-  const total = cash + investments + realEstate + other;
-  const net = total - liabilities;
+  const houseVal = collectFormValue('f_house_val');
+  const carVal = collectFormValue('f_car_val');
+  const houseMortgage = collectFormValue('f_house_mortgage');
+  const carLoan = collectFormValue('f_car_loan');
+  const total = cash + investments + houseVal + carVal;
+  const net = total - houseMortgage - carLoan;
   $('totalAssetsDisplay').textContent = total.toLocaleString('zh-CN');
   $('netAssetsDisplay').textContent = net.toLocaleString('zh-CN');
 }
