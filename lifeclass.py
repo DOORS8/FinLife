@@ -32,7 +32,7 @@ class Parameter:
     --------
     >>> p1 = Parameter(120000, annual_change_rate=0.03)        # 固定，年增 3%
     >>> p2 = Parameter(0.06, dist_type="normal",
-    ...                dist_params=(0.06, 0.02))                # 正态分布
+    ...                dist_params=(0.15,))               # 正态分布 (均值=base_value, 标准差=0.15)
     >>> val = p2.sample(year=5, rng=np.random.default_rng(42))
     """
 
@@ -42,6 +42,9 @@ class Parameter:
         self.dist_type = dist_type
         self.dist_params = dist_params or ()
         self.annual_change_rate = float(annual_change_rate)
+        # For uniform, base_value is always the midpoint of (lo, hi)
+        if self.dist_type == "uniform" and self.dist_params:
+            self.base_value = (self.dist_params[0] + self.dist_params[1]) / 2
 
     # ---------- 采样 ----------
     def sample(self, rng=None):
@@ -58,13 +61,19 @@ class Parameter:
         self.base_value = value
         if self.dist_type == "fixed":
             return
-        elif self.dist_type in ["normal", "uniform"]:
+        elif self.dist_type == "normal":
+            ratio = self.base_value / vold if vold != 0 else 1.0
             if isinstance(self.dist_params, list):
-                self.dist_params = [params*(self.base_value/vold) for params in self.dist_params]
+                self.dist_params = [self.dist_params[0] * ratio]
             elif isinstance(self.dist_params, tuple):
-                dist_list = list(self.dist_params)
-                dist_list = [params*(self.base_value/vold) for params in dist_list]
-                self.dist_params = tuple(dist_list)
+                self.dist_params = (self.dist_params[0] * ratio,)
+        elif self.dist_type == "uniform":
+            ratio = self.base_value / vold if vold != 0 else 1.0
+            if isinstance(self.dist_params, list):
+                self.dist_params = [p * ratio for p in self.dist_params]
+            elif isinstance(self.dist_params, tuple):
+                self.dist_params = tuple(p * ratio for p in self.dist_params)
+            self.base_value = (self.dist_params[0] + self.dist_params[1]) / 2
         else:
             raise ValueError(f"Unknown dist_type: {self.dist_type}")
         return
@@ -73,8 +82,8 @@ class Parameter:
         if self.dist_type == "fixed":
             return self.base_value
         elif self.dist_type == "normal":
-            mean, std = self.dist_params
-            return float(rng.normal(mean, std))
+            std = self.dist_params[0]
+            return float(rng.normal(self.base_value, std))
         elif self.dist_type == "uniform":
             lo, hi = self.dist_params
             return float(rng.uniform(lo, hi))
@@ -86,7 +95,7 @@ class Parameter:
         if self.dist_type == "fixed":
             return self.base_value
         elif self.dist_type == "normal":
-            return self.dist_params[0]
+            return self.base_value
         elif self.dist_type == "uniform":
             lo, hi = self.dist_params
             return (lo + hi) / 2
@@ -151,8 +160,8 @@ class FinanceLifeSim:
                  salary=Parameter(150_000, annual_change_rate=0.03),
                  living_expense=Parameter(60_000, annual_change_rate=0.03),
                  investment_return=Parameter(0.06, dist_type="normal",
-                                             dist_params=(0.06, 0.15)),
-                 inflation_rate=Parameter(0.03, dist_type="normal", dist_params=(0.03, 0.02)),
+                                             dist_params=(0.15,)),
+                 inflation_rate=Parameter(0.03, dist_type="normal", dist_params=(0.02,)),
                  start_year=2024):
         # --- 资产 ---
         self.cash = float(init_cash)

@@ -4,7 +4,7 @@
 #   - 以 # 开头的行为注释
 #   - [section] 定义段落
 #   - key = value 定义参数
-#   - Parameter: value | value ~ N(mean, std) | value ~ U(lo, hi)
+#   - Parameter: value | value ~ N(std) | ~ U(lo, hi)
 #   - 百分比: 0.03 或 3% 均可
 # ============================================================
 
@@ -41,18 +41,18 @@ value = 0
 # loan_rate = 2.6%
 
 [salary]
-value = 400_000 ~ N(400_000, 40_000)
+value = 400_000 ~ N(40_000)
 annual_change_rate = 3%
 
 [living_expense]
-value = 100_000 ~ N(100_000, 10_000)
+value = 100_000 ~ N(10_000)
 annual_change_rate = 3%
 
 [investment_return]
-value = 8% ~ N(8%, 18%)
+value = 8% ~ N(18%)
 
 [inflation_rate]
-value = 3% ~ N(3%, 2%)
+value = 3% ~ N(2%)
 
 [events]
 # 格式: 事件类型 | 触发年份 | 参数1=值1 | 参数2=值2 | ...
@@ -73,10 +73,10 @@ buy_house | 2035 | house_price=3_000_000 | down_pct=30% | mortgage_years=30 | mo
 
 # 换工作（new_salary 按当前购买力填写，程序自动通胀换算到 2033 年）
 # 也可用 raise_pct（涨薪比例，如 20%）或 raise_value（按当前购买力的涨薪绝对值）
-job_change | 2033 | new_salary=300_000 ~ N(300_000, 30_000)
+job_change | 2033 | new_salary=300_000 ~ N(30_000)
 
 # 更换稳健投资
-change_invest_return | 2045 | new_return=6% ~ N(4%, 2%)
+change_invest_return | 2045 | new_return=6% ~ N(2%)
 
 # 退休
 retirement | 2060

@@ -83,8 +83,7 @@ def make_job_change(name="job_change", trigger_year=2027,
                 ns = copy.deepcopy(ns)
                 ns.base_value *= inflate
                 if ns.dist_type == "normal":
-                    m, s = ns.dist_params
-                    ns.dist_params = (m * inflate, s * inflate)
+                    ns.dist_params = (ns.dist_params[0] * inflate,)
                 ns.annual_change_rate = cr
                 sim.salary = ns
         sim.event_log.append(dict(
@@ -105,10 +104,11 @@ def make_marriage(name="marriage", trigger_year=2026,
     def _cb(sim, **kw):
         pi = kw["partner_income"] * sim.inflation_factor
         ee = kw["extra_expense"] * sim.inflation_factor
+        old_base = sim.salary.base_value
         sim.salary.base_value += pi
         if sim.salary.dist_type == "normal":
-            m, s = sim.salary.dist_params
-            sim.salary.dist_params = (m + pi, s * (1 + pi / m))
+            s = sim.salary.dist_params[0]
+            sim.salary.dist_params = (s * (1 + pi / old_base),)
         sim.living_expense.base_value += ee
         sim.event_log.append(dict(
             year=sim.current_year, event="marriage",
@@ -154,7 +154,7 @@ def make_retirement(name="retirement", trigger_year=2050):
     """退休"""
     def _cb(sim, **kw):
         sim.salary = Parameter(0)
-        sim.living_expense.base_value *= 0.7
+        sim.living_expense.change_value(sim.living_expense.base_value * 0.7)
         sim.retired = True
         sim.event_log.append(dict(
             year=sim.current_year, event="retirement",
@@ -201,8 +201,7 @@ def change_living_expense(name="change_expense", trigger_year=2027,
                 ne = copy.deepcopy(ne)
                 ne.base_value *= inflate
                 if ne.dist_type == "normal":
-                    m, s = ne.dist_params
-                    ne.dist_params = (m * inflate, s * inflate)
+                    ne.dist_params = (ne.dist_params[0] * inflate,)
                 ne.annual_change_rate = cr
                 sim.living_expense = ne
         sim.event_log.append(dict(

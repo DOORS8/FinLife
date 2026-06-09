@@ -18,8 +18,8 @@ config_parser.py - 财务人生模拟器配置文件解析器
 
 3. 参数值格式：
    - 固定值:        100_000
-   - 正态分布:      100_000 ~ N(100_000, 10_000)
-   - 均匀分布:      100_000 ~ U(80_000, 120_000)
+   - 正态分布:      100_000 ~ N(10_000)           （均值=基准值，只需指定标准差）
+   - 均匀分布:      ~ U(80_000, 120_000)           （基准值由上下限中点推导）
    
 4. 百分比支持:
    - 0.049  或  4.9%  均可，% 会自动转换为小数
@@ -72,10 +72,11 @@ def _parse_param_value(s):
 
     格式示例:
       100_000                                    → fixed
-      100_000 ~ N(100_000, 10_000)              → normal
-      6% ~ N(6%, 15%)                           → normal (百分比)
-      100_000 ~ U(80_000, 120_000)              → uniform
-                """
+      100_000 ~ N(10_000)                        → normal (均值=100_000, 标准差=10_000)
+      6% ~ N(18%)                                → normal (百分比)
+      ~ U(80_000, 120_000)                       → uniform (base_value=midpoint)
+      100_000 ~ U(80_000, 120_000)               → uniform (100_000 ignored, base_value=midpoint)
+    """
     s = s.strip()
     tilde_idx = s.find('~')
     if tilde_idx == -1:
@@ -84,7 +85,13 @@ def _parse_param_value(s):
 
     value_part = s[:tilde_idx].strip()
     dist_part = s[tilde_idx + 1:].strip()
-    base_value = _parse_simple_value(value_part)
+
+    # For uniform: value_part may be empty (e.g., "~ U(80_000, 120_000)")
+    # For normal: value_part is the mean (= base_value)
+    if value_part:
+        base_value = _parse_simple_value(value_part)
+    else:
+        base_value = None
 
     m = re.match(r'(\w+)\((.+)\)', dist_part)
     if not m:
@@ -94,8 +101,7 @@ def _parse_param_value(s):
     params_str = m.group(2)
     raw_params = [p.strip() for p in params_str.split(',')]
 
-    # 如果基准值用了百分比写法，分布参数也按百分比解析
-    is_pct = value_part.strip().endswith('%')
+    is_pct = value_part.endswith('%') if value_part else False
     if is_pct:
         dist_params = tuple(_parse_percent(p) for p in raw_params)
     else:
@@ -105,6 +111,26 @@ def _parse_param_value(s):
     dist_type = dist_type_map.get(dist_name)
     if dist_type is None:
         raise ValueError(f"未知分布类型: {dist_name}，支持: N, U")
+
+    # Backward compat: N(mean, std) with 2 params — drop mean if it matches base_value
+    if dist_type == 'normal' and len(dist_params) == 2:
+        if base_value is not None and abs(dist_params[0] - base_value) < 1e-10 * max(1, abs(base_value)):
+            dist_params = (dist_params[1],)
+        else:
+            raise ValueError(
+                f"正态分布旧格式 N(mean, std) 中 mean ({dist_params[0]}) "
+                f"与基准值 ({base_value}) 不匹配。请使用新格式: {base_value} ~ N({dist_params[1]})"
+            )
+
+    # Validate param count
+    if dist_type == 'normal' and len(dist_params) != 1:
+        raise ValueError(f"正态分布需要 1 个参数（标准差），收到 {len(dist_params)} 个")
+    if dist_type == 'uniform' and len(dist_params) != 2:
+        raise ValueError(f"均匀分布需要 2 个参数（下限, 上限），收到 {len(dist_params)} 个")
+
+    # For uniform, derive base_value from midpoint
+    if dist_type == 'uniform':
+        base_value = (dist_params[0] + dist_params[1]) / 2
 
     return {"value": base_value, "dist_type": dist_type,
             "dist_params": dist_params, "annual_change_rate": 0.0}

@@ -22,13 +22,13 @@ let isMultiSelect = false;
 const DEFAULT_FORM_VALUES = {
   f_start_year: 2027, f_end_year: 2060, f_seed: 123,
   f_cash: 300000, f_investments: 150000,
-  f_salary_val: 400000, f_salary_n_mean: 400000, f_salary_n_std: 40000,
+  f_salary_val: 400000, f_salary_n_std: 40000,
   f_salary_u_lo: 360000, f_salary_u_hi: 440000, f_salary_ann: 3,
-  f_expense_val: 100000, f_expense_n_mean: 100000, f_expense_n_std: 10000,
+  f_expense_val: 100000, f_expense_n_std: 10000,
   f_expense_u_lo: 90000, f_expense_u_hi: 110000, f_expense_ann: 3,
-  f_invret_val: 8, f_invret_n_mean: 8, f_invret_n_std: 18,
+  f_invret_val: 8, f_invret_n_std: 18,
   f_invret_u_lo: 5, f_invret_u_hi: 11,
-  f_infl_val: 3, f_infl_n_mean: 3, f_infl_n_std: 2,
+  f_infl_val: 3, f_infl_n_std: 2,
   f_infl_u_lo: 1, f_infl_u_hi: 5,
   f_house_val: 0, f_house_mortgage: 0, f_house_years: 25, f_house_rate: 3.5, f_house_appr: 3,
   f_car_val: 0, f_car_loan: 0, f_car_years: 2, f_car_rate: 2.6,
@@ -48,8 +48,8 @@ const DEFAULT_EVENTS = [
   { type: 'birth', year: 2030, params: { child_cost: 30000, edu_start_age: 6, edu_cost: 10000 } },
   { type: 'buy_car', year: 2028, params: { car_price: 100000, down_pct: 0.5, loan_years: 3, loan_rate: 0.026 } },
   { type: 'buy_house', year: 2035, params: { house_price: 3000000, down_pct: 0.3, mortgage_years: 30, mortgage_rate: 0.035, appreciation: 0.03 } },
-  { type: 'job_change', year: 2033, params: { new_salary: { base_value: 300000, dist_type: 'normal', dist_params: [300000, 30000] } } },
-  { type: 'change_invest_return', year: 2045, params: { new_return: { base_value: 0.06, dist_type: 'normal', dist_params: [0.04, 0.02] } } },
+  { type: 'job_change', year: 2033, params: { new_salary: { base_value: 300000, dist_type: 'normal', dist_params: [30000] } } },
+  { type: 'change_invest_return', year: 2045, params: { new_return: { base_value: 0.06, dist_type: 'normal', dist_params: [0.02] } } },
   { type: 'retirement', year: 2060, params: {} },
   { type: 'redistribute_invest', year: 'auto', params: {} },
 ];
@@ -545,9 +545,8 @@ function fillModalFields(evt) {
 
 function fillModalDistParams(prefix, distType, params) {
   const arr = Array.isArray(params) ? params : Object.values(params);
-  if (distType === 'normal' && arr.length >= 2) {
-    $(`${prefix}_n_mean`).value = arr[0];
-    $(`${prefix}_n_std`).value = arr[1];
+  if (distType === 'normal' && arr.length >= 1) {
+    $(`${prefix}_n_std`).value = arr[0];
   } else if (distType === 'uniform' && arr.length >= 2) {
     $(`${prefix}_u_lo`).value = arr[0];
     $(`${prefix}_u_hi`).value = arr[1];
@@ -657,7 +656,7 @@ function saveEventFromModal() {
 
 function readModalDistParams(prefix, distType) {
   if (distType === 'fixed') return null;
-  if (distType === 'normal') return [parseFloat($(`${prefix}_n_mean`).value) || 0, parseFloat($(`${prefix}_n_std`).value) || 0];
+  if (distType === 'normal') return [parseFloat($(`${prefix}_n_std`).value) || 0];
   if (distType === 'uniform') return [parseFloat($(`${prefix}_u_lo`).value) || 0, parseFloat($(`${prefix}_u_hi`).value) || 0];
   return null;
 }
@@ -951,7 +950,7 @@ function buildConfigText(nSamples) {
 function readDistParams(prefix) {
   const distType = $(`${prefix}_dist`).value;
   if (distType === 'fixed') return null;
-  if (distType === 'normal') return [collectFormValue(`${prefix}_n_mean`) || collectFormValue(`${prefix}_val`), collectFormValue(`${prefix}_n_std`)];
+  if (distType === 'normal') return [collectFormValue(`${prefix}_n_std`)];
   if (distType === 'uniform') return [collectFormValue(`${prefix}_u_lo`), collectFormValue(`${prefix}_u_hi`)];
   return null;
 }
@@ -1007,7 +1006,7 @@ function buildConfigTextFromState(cfg, nSamples) {
   function stateDistParams(prefix) {
     const distType = sv[prefix + '_dist'] || 'fixed';
     if (distType === 'fixed') return null;
-    if (distType === 'normal') return [fv[prefix + '_n_mean'] || fv[prefix + '_val'], fv[prefix + '_n_std']];
+    if (distType === 'normal') return [fv[prefix + '_n_std']];
     if (distType === 'uniform') return [fv[prefix + '_u_lo'], fv[prefix + '_u_hi']];
     return null;
   }
