@@ -17,6 +17,18 @@
   <div class="main-layout">
     <!-- ─── Left: Config Panel ─── -->
     <section class="config-panel" id="configPanel">
+      <!-- ─── Tab Bar ─── -->
+      <div class="tab-bar" id="tabBar">
+        <div class="tab-list" id="tabList">
+          <!-- tabs inserted dynamically -->
+        </div>
+        <div class="tab-actions">
+          <button id="addTabBtn" class="btn btn-sm btn-icon" title="新增配置文件">+</button>
+          <button id="multiSelectBtn" class="btn btn-sm" title="多选对比模式">多选</button>
+          <button id="compareBtn" class="btn btn-sm btn-primary" title="计算蒙特卡洛对比模拟" disabled>计算</button>
+        </div>
+      </div>
+
       <div class="panel-header">
         <h2>配置</h2>
         <div class="config-actions">
@@ -241,12 +253,13 @@
     </section>
 
     <!-- ─── Right: Results ─── -->
-    <section class="results-panel">
+    <div class="results-wrapper">
       <div id="loadingOverlay" class="loading-overlay hidden">
         <div class="spinner"></div>
         <p id="loadingText">正在加载 Pyodide ...</p>
       </div>
-      <div id="placeholder" class="placeholder">
+      <section class="results-panel">
+        <div id="placeholder" class="placeholder">
         <p>配置参数并点击「运行模拟」开始</p>
       </div>
       <div id="resultsContent" class="results-content hidden">
@@ -271,7 +284,20 @@
           <div class="plot-grid" id="plotGrid"></div>
         </div>
       </div>
+
+      <!-- ═══ Compare Results ═══ -->
+      <div id="compareContent" class="results-content hidden">
+        <div class="result-section">
+          <h3>对比统计</h3>
+          <div id="compareStats"></div>
+        </div>
+        <div class="result-section">
+          <h3>对比图表</h3>
+          <div class="plot-grid" id="comparePlotGrid"></div>
+        </div>
+      </div>
     </section>
+    </div>
   </div>
 </div>
 

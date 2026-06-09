@@ -14,6 +14,46 @@ let pyodide = null;
 let events = [];
 let isExpertMode = false;
 
+// ── Multi-tab config state ──
+let configs = [];  // each item: { label, formValues, events, expertText }
+let activeTab = 0;
+let isMultiSelect = false;
+
+const DEFAULT_FORM_VALUES = {
+  f_start_year: 2027, f_end_year: 2060, f_seed: 123,
+  f_cash: 300000, f_investments: 150000,
+  f_salary_val: 400000, f_salary_n_mean: 400000, f_salary_n_std: 40000,
+  f_salary_u_lo: 360000, f_salary_u_hi: 440000, f_salary_ann: 3,
+  f_expense_val: 100000, f_expense_n_mean: 100000, f_expense_n_std: 10000,
+  f_expense_u_lo: 90000, f_expense_u_hi: 110000, f_expense_ann: 3,
+  f_invret_val: 8, f_invret_n_mean: 8, f_invret_n_std: 18,
+  f_invret_u_lo: 5, f_invret_u_hi: 11,
+  f_infl_val: 3, f_infl_n_mean: 3, f_infl_n_std: 2,
+  f_infl_u_lo: 1, f_infl_u_hi: 5,
+  f_house_val: 0, f_house_mortgage: 0, f_house_years: 25, f_house_rate: 3.5, f_house_appr: 3,
+  f_car_val: 0, f_car_loan: 0, f_car_years: 2, f_car_rate: 2.6,
+};
+
+const DEFAULT_SELECT_VALUES = {
+  f_salary_dist: 'normal', f_expense_dist: 'normal',
+  f_invret_dist: 'normal', f_infl_dist: 'normal',
+};
+
+const DEFAULT_CHECKBOX_VALUES = {
+  f_inflation_adj: false,
+};
+
+const DEFAULT_EVENTS = [
+  { type: 'marriage', year: 2029, params: { partner_income: 100000, extra_expense: 30000 } },
+  { type: 'birth', year: 2030, params: { child_cost: 30000, edu_start_age: 6, edu_cost: 10000 } },
+  { type: 'buy_car', year: 2028, params: { car_price: 100000, down_pct: 0.5, loan_years: 3, loan_rate: 0.026 } },
+  { type: 'buy_house', year: 2035, params: { house_price: 3000000, down_pct: 0.3, mortgage_years: 30, mortgage_rate: 0.035, appreciation: 0.03 } },
+  { type: 'job_change', year: 2033, params: { new_salary: { base_value: 300000, dist_type: 'normal', dist_params: [300000, 30000] } } },
+  { type: 'change_invest_return', year: 2045, params: { new_return: { base_value: 0.06, dist_type: 'normal', dist_params: [0.04, 0.02] } } },
+  { type: 'retirement', year: 2060, params: {} },
+  { type: 'redistribute_invest', year: 'auto', params: {} },
+];
+
 // ════════════════════════════════════════════
 //  DOM refs
 // ════════════════════════════════════════════
@@ -61,10 +101,288 @@ async function initPyodide() {
   pyodide.runPython(`
 import sys
 sys.path.insert(0, '.')
-from bridge import _run
+from bridge import _run, _run_compare
   `);
 
   overlay.classList.add('hidden');
+}
+
+// ════════════════════════════════════════════
+//  Tab Management
+// ════════════════════════════════════════════
+
+const TAB_COLORS = ['#3498db', '#e67e22', '#27ae60', '#e74c3c', '#8e44ad'];
+
+function createDefaultConfig(label) {
+  return {
+    label: label || `配置 ${configs.length + 1}`,
+    formValues: { ...DEFAULT_FORM_VALUES },
+    selectValues: { ...DEFAULT_SELECT_VALUES },
+    checkboxValues: { ...DEFAULT_CHECKBOX_VALUES },
+    events: DEFAULT_EVENTS.map(e => ({
+      type: e.type, year: e.year,
+      params: e.params ? JSON.parse(JSON.stringify(e.params)) : {},
+    })),
+    expertText: '',
+  };
+}
+
+function saveCurrentConfig() {
+  if (configs.length === 0) return;
+  const cfg = configs[activeTab];
+
+  // Save form field values
+  const fv = {};
+  for (const id of Object.keys(DEFAULT_FORM_VALUES)) {
+    const el = $(id);
+    if (el) fv[id] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
+  }
+  cfg.formValues = fv;
+
+  // Save select values
+  const sv = {};
+  for (const id of Object.keys(DEFAULT_SELECT_VALUES)) {
+    const el = $(id);
+    if (el) sv[id] = el.value;
+  }
+  cfg.selectValues = sv;
+
+  // Save checkbox values
+  const cv = {};
+  for (const id of Object.keys(DEFAULT_CHECKBOX_VALUES)) {
+    const el = $(id);
+    if (el) cv[id] = el.checked;
+  }
+  cfg.checkboxValues = cv;
+
+  // Save events
+  cfg.events = JSON.parse(JSON.stringify(events));
+
+  // Save expert text if in expert mode
+  if (isExpertMode) {
+    cfg.expertText = $('configEditor').value;
+  }
+}
+
+function loadConfig(idx) {
+  const cfg = configs[idx];
+  if (!cfg) return;
+
+  // Restore form values
+  for (const [id, val] of Object.entries(cfg.formValues)) {
+    const el = $(id);
+    if (el) el.value = val;
+  }
+
+  // Restore selects
+  for (const [id, val] of Object.entries(cfg.selectValues)) {
+    const el = $(id);
+    if (el) el.value = val;
+  }
+
+  // Restore checkboxes
+  for (const [id, val] of Object.entries(cfg.checkboxValues)) {
+    const el = $(id);
+    if (el) el.checked = val;
+  }
+
+  // Update dist fields visibility
+  DIST_CHANGE_IDS.forEach(id => updateDistFields(id));
+
+  // Restore events
+  events = JSON.parse(JSON.stringify(cfg.events));
+  renderEventList();
+
+  // Restore expert text (will be regenerated if switching to form mode)
+  $('configEditor').value = cfg.expertText || '';
+
+  // Update assets summary
+  updateAssetsSummary();
+}
+
+function renderTabs() {
+  const tabList = $('tabList');
+  tabList.innerHTML = '';
+  configs.forEach((cfg, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'tab-item' + (i === activeTab ? ' active' : '');
+    tab.style.borderTopColor = TAB_COLORS[i % TAB_COLORS.length];
+    if (i === activeTab) tab.style.borderTop = `3px solid ${TAB_COLORS[i % TAB_COLORS.length]}`;
+
+    const checkbox = isMultiSelect ? `<input type="checkbox" class="tab-checkbox" data-idx="${i}" ${cfg.selected ? 'checked' : ''}>` : '';
+    const closeBtn = configs.length > 1 ? `<button class="tab-close" data-idx="${i}" title="关闭">&times;</button>` : '';
+
+    tab.innerHTML = `${checkbox}<span class="tab-label">${cfg.label}</span>${closeBtn}`;
+    tabList.appendChild(tab);
+  });
+
+  // Bind tab click events
+  tabList.querySelectorAll('.tab-item').forEach((tab, i) => {
+    tab.addEventListener('click', (e) => {
+      // Don't switch tab if clicking close or checkbox
+      if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-checkbox')) return;
+      switchTab(i);
+    });
+  });
+
+  // Bind close buttons
+  tabList.querySelectorAll('.tab-close').forEach(btn => {
+    btn.addEventListener('click', () => removeTab(parseInt(btn.dataset.idx, 10)));
+  });
+
+  // Bind checkboxes
+  tabList.querySelectorAll('.tab-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const idx = parseInt(cb.dataset.idx, 10);
+      configs[idx].selected = cb.checked;
+      updateCompareBtnState();
+    });
+  });
+}
+
+function switchTab(idx) {
+  if (idx === activeTab || idx < 0 || idx >= configs.length) return;
+  saveCurrentConfig();
+  activeTab = idx;
+  loadConfig(activeTab);
+  renderTabs();
+}
+
+function addTab() {
+  if (configs.length >= 5) {
+    alert('最多支持 5 个配置文件');
+    return;
+  }
+  saveCurrentConfig();
+  configs.push(createDefaultConfig());
+  activeTab = configs.length - 1;
+  loadConfig(activeTab);
+  renderTabs();
+}
+
+function removeTab(idx) {
+  if (configs.length <= 1) return;
+  configs.splice(idx, 1);
+  if (activeTab >= configs.length) activeTab = configs.length - 1;
+  else if (activeTab > idx) activeTab--;
+  loadConfig(activeTab);
+  renderTabs();
+}
+
+function toggleMultiSelect() {
+  isMultiSelect = !isMultiSelect;
+  const tabBar = $('tabBar');
+  if (isMultiSelect) {
+    tabBar.classList.add('multi-select');
+    // Default: select all configs
+    configs.forEach(c => c.selected = true);
+  } else {
+    tabBar.classList.remove('multi-select');
+    configs.forEach(c => c.selected = false);
+  }
+  renderTabs();
+  updateCompareBtnState();
+}
+
+function updateCompareBtnState() {
+  const selectedCount = configs.filter(c => c.selected).length;
+  $('compareBtn').disabled = selectedCount < 2;
+}
+
+function getSelectedConfigs() {
+  return configs.filter(c => c.selected);
+}
+
+// ════════════════════════════════════════════
+//  Run Comparison Simulation
+// ════════════════════════════════════════════
+
+async function runCompare() {
+  const selected = getSelectedConfigs();
+  if (selected.length < 2) {
+    alert('请选择至少 2 个配置文件进行对比');
+    return;
+  }
+
+  // Save all selected configs first
+  saveCurrentConfig();
+
+  const runBtn = $('compareBtn');
+  runBtn.disabled = true;
+  runBtn.textContent = '⏳ 运行中...';
+  const overlay = $('loadingOverlay');
+  const loadingText = $('loadingText');
+  overlay.classList.remove('hidden');
+  loadingText.textContent = '正在运行对比蒙特卡洛模拟...';
+
+  await new Promise(r => setTimeout(r, 50));
+
+  try {
+    const nSamples = parseInt($('samplesSelect').value, 10);
+    const configTexts = [];
+    const labels = [];
+
+    for (const cfg of selected) {
+      const text = buildConfigTextFromState(cfg, nSamples);
+      configTexts.push(text);
+      labels.push(cfg.label);
+    }
+
+    // Call Python bridge (already imported during initPyodide)
+    const pyConfigTexts = pyodide.toPy(configTexts);
+    const pyLabels = pyodide.toPy(labels);
+    const result = pyodide.globals.get('_run_compare')(pyConfigTexts, pyLabels, nSamples);
+    pyConfigTexts.destroy();
+    pyLabels.destroy();
+    const data = result.toJs({ dict_converter: Object.fromEntries });
+
+    $('placeholder').classList.add('hidden');
+    $('resultsContent').classList.add('hidden');
+    $('compareContent').classList.remove('hidden');
+    renderCompareResults(data);
+  } catch (err) {
+    alert('对比模拟出错:\n' + err.message);
+    console.error(err);
+  } finally {
+    runBtn.disabled = false;
+    runBtn.textContent = '计算';
+    overlay.classList.add('hidden');
+    // Re-enable based on selection
+    updateCompareBtnState();
+  }
+}
+
+function renderCompareResults(data) {
+  // Per-config stats cards
+  const container = $('compareStats');
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'compare-stats-grid';
+
+  data.per_config.forEach((cfg, i) => {
+    const card = document.createElement('div');
+    card.className = 'compare-config-card';
+    card.style.borderTop = `3px solid ${TAB_COLORS[i % TAB_COLORS.length]}`;
+    const stats = cfg.mc_stats;
+    const last = arr => arr[arr.length - 1];
+    card.innerHTML = `<h4>${cfg.label}</h4>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">均值净值</div><div class="stat-value">${last(stats.mean)} W</div></div>
+        <div class="stat-card"><div class="stat-label">中位数净值</div><div class="stat-value">${last(stats.p50)} W</div></div>
+        <div class="stat-card"><div class="stat-label">5% 分位</div><div class="stat-value">${last(stats.p5)} W</div></div>
+        <div class="stat-card"><div class="stat-label">95% 分位</div><div class="stat-value">${last(stats.p95)} W</div></div>
+      </div>`;
+    grid.appendChild(card);
+  });
+  container.appendChild(grid);
+
+  // Comparison plot
+  const plotContainer = $('comparePlotGrid');
+  plotContainer.innerHTML = '';
+  const div = document.createElement('div');
+  div.innerHTML = `<p style="font-size:0.82rem;font-weight:500;margin-bottom:4px;">净值对比</p>
+                   <img src="${data.compare_plot}" alt="Net Worth Comparison">`;
+  plotContainer.appendChild(div);
 }
 
 // ════════════════════════════════════════════
@@ -638,6 +956,95 @@ function readDistParams(prefix) {
   return null;
 }
 
+// ── Build config text from saved state (no DOM reads) ──
+function buildConfigTextFromState(cfg, nSamples) {
+  const fv = cfg.formValues;
+  const sv = cfg.selectValues;
+  const cv = cfg.checkboxValues;
+  const evts = cfg.events;
+
+  const get = (id, fallback) => fv[id] != null ? fv[id] : fallback;
+
+  const lines = [];
+  lines.push('# Generated by FinLife Web Form');
+  lines.push('');
+
+  lines.push('[simulation]');
+  lines.push(`start_year = ${get('f_start_year', 2027)}`);
+  lines.push(`end_year = ${get('f_end_year', 2060)}`);
+  lines.push(`n_samples = ${nSamples}`);
+  lines.push(`seed = ${get('f_seed', 123)}`);
+  lines.push(`inflation_adjusted = ${cv.f_inflation_adj ? 'true' : 'false'}`);
+  lines.push('');
+
+  lines.push('[initial_assets]');
+  lines.push(`cash = ${Math.round(get('f_cash', 0))}`);
+  lines.push(`investments = ${Math.round(get('f_investments', 0))}`);
+  lines.push('');
+
+  const houseVal = get('f_house_val', 0);
+  if (houseVal > 0) {
+    lines.push('[initial_house]');
+    lines.push(`value = ${Math.round(houseVal)}`);
+    lines.push(`remaining_mortgage = ${Math.round(get('f_house_mortgage', 0))}`);
+    lines.push(`remaining_years = ${get('f_house_years', 25)}`);
+    lines.push(`mortgage_rate = ${(get('f_house_rate', 3.5) / 100).toFixed(4)}`);
+    lines.push(`appreciation = ${(get('f_house_appr', 3) / 100).toFixed(4)}`);
+    lines.push('');
+  }
+
+  const carVal = get('f_car_val', 0);
+  if (carVal > 0) {
+    lines.push('[initial_car]');
+    lines.push(`value = ${Math.round(carVal)}`);
+    lines.push(`remaining_loan = ${Math.round(get('f_car_loan', 0))}`);
+    lines.push(`remaining_years = ${get('f_car_years', 2)}`);
+    lines.push(`loan_rate = ${(get('f_car_rate', 2.6) / 100).toFixed(4)}`);
+    lines.push('');
+  }
+
+  // Helper for dist params from saved state
+  function stateDistParams(prefix) {
+    const distType = sv[prefix + '_dist'] || 'fixed';
+    if (distType === 'fixed') return null;
+    if (distType === 'normal') return [fv[prefix + '_n_mean'] || fv[prefix + '_val'], fv[prefix + '_n_std']];
+    if (distType === 'uniform') return [fv[prefix + '_u_lo'], fv[prefix + '_u_hi']];
+    return null;
+  }
+
+  lines.push('[salary]');
+  lines.push(valueLine('value',
+    get('f_salary_val', 0), sv['f_salary_dist'] || 'normal', stateDistParams('f_salary'),
+    false, get('f_salary_ann', 0)));
+  lines.push('');
+
+  lines.push('[living_expense]');
+  lines.push(valueLine('value',
+    get('f_expense_val', 0), sv['f_expense_dist'] || 'normal', stateDistParams('f_expense'),
+    false, get('f_expense_ann', 0)));
+  lines.push('');
+
+  lines.push('[investment_return]');
+  lines.push(valueLine('value',
+    get('f_invret_val', 0), sv['f_invret_dist'] || 'normal', stateDistParams('f_invret'),
+    true, null));
+  lines.push('');
+
+  lines.push('[inflation_rate]');
+  lines.push(valueLine('value',
+    get('f_infl_val', 0), sv['f_infl_dist'] || 'normal', stateDistParams('f_infl'),
+    true, null));
+  lines.push('');
+
+  if (evts.length > 0) {
+    lines.push('[events]');
+    evts.forEach(e => lines.push(eventToString(e)));
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
 // ════════════════════════════════════════════
 //  Run Simulation
 // ════════════════════════════════════════════
@@ -669,6 +1076,7 @@ async function runSimulation() {
 
     $('placeholder').classList.add('hidden');
     $('resultsContent').classList.remove('hidden');
+    $('compareContent').classList.add('hidden');
     renderResults(data);
   } catch (err) {
     alert('模拟出错:\n' + err.message);
@@ -794,38 +1202,23 @@ function toggleMode() {
 // ════════════════════════════════════════════
 
 function resetToDefault() {
-  // Reset number fields to their default values based on HTML
-  // We'll just reload the defaults from the HTML attributes
-  const defaults = {
-    f_start_year: 2027, f_end_year: 2060, f_seed: 123,
-    f_cash: 300000, f_investments: 150000,
-    f_salary_val: 400000, f_salary_n_mean: 400000, f_salary_n_std: 40000,
-    f_salary_u_lo: 360000, f_salary_u_hi: 440000,
-    f_salary_ann: 3,
-    f_expense_val: 100000, f_expense_n_mean: 100000, f_expense_n_std: 10000,
-    f_expense_u_lo: 90000, f_expense_u_hi: 110000,
-    f_expense_ann: 3,
-    f_invret_val: 8, f_invret_n_mean: 8, f_invret_n_std: 18,
-    f_invret_u_lo: 5, f_invret_u_hi: 11,
-    f_infl_val: 3, f_infl_n_mean: 3, f_infl_n_std: 2,
-    f_infl_u_lo: 1, f_infl_u_hi: 5,
-    f_house_val: 0, f_house_mortgage: 0, f_house_years: 25, f_house_rate: 3.5, f_house_appr: 3,
-    f_car_val: 0, f_car_loan: 0, f_car_years: 2, f_car_rate: 2.6,
-  };
-
-  for (const [id, val] of Object.entries(defaults)) {
+  // Reset number fields to their default values
+  for (const [id, val] of Object.entries(DEFAULT_FORM_VALUES)) {
     const el = $(id);
     if (el) el.value = val;
   }
 
   // Reset selects
-  $('f_salary_dist').value = 'normal';
-  $('f_expense_dist').value = 'normal';
-  $('f_invret_dist').value = 'normal';
-  $('f_infl_dist').value = 'normal';
+  for (const [id, val] of Object.entries(DEFAULT_SELECT_VALUES)) {
+    const el = $(id);
+    if (el) el.value = val;
+  }
 
   // Checkbox
-  $('f_inflation_adj').checked = false;
+  for (const [id, val] of Object.entries(DEFAULT_CHECKBOX_VALUES)) {
+    const el = $(id);
+    if (el) el.checked = val;
+  }
 
   // Update all distribution fields
   DIST_CHANGE_IDS.forEach(id => updateDistFields(id));
@@ -834,11 +1227,16 @@ function resetToDefault() {
   updateAssetsSummary();
 
   // Reset events
-  events = [];
+  events = DEFAULT_EVENTS.map(e => ({
+    type: e.type,
+    year: e.year,
+    params: e.params ? JSON.parse(JSON.stringify(e.params)) : {},
+  }));
   renderEventList();
 
   // Clear results
   $('resultsContent').classList.add('hidden');
+  $('compareContent').classList.add('hidden');
   $('placeholder').classList.remove('hidden');
 }
 
@@ -866,6 +1264,11 @@ function updateAssetsSummary() {
 // ════════════════════════════════════════════
 
 (async function() {
+  // ── Initialize first tab ──
+  configs.push(createDefaultConfig('配置 1'));
+  activeTab = 0;
+  renderTabs();
+
   // Distribution field toggles
   DIST_CHANGE_IDS.forEach(id => setupDistToggle(id));
   // Init dist fields
@@ -930,20 +1333,20 @@ function updateAssetsSummary() {
   // Reset
   $('loadDefaultBtn').addEventListener('click', resetToDefault);
 
-  // Run
+  // Run single simulation
   $('runBtn').addEventListener('click', runSimulation);
 
+  // Tab bar buttons
+  $('addTabBtn').addEventListener('click', addTab);
+  $('multiSelectBtn').addEventListener('click', toggleMultiSelect);
+  $('compareBtn').addEventListener('click', runCompare);
+
   // Init default events
-  events = [
-    { type: 'marriage', year: 2029, params: { partner_income: 100000, extra_expense: 30000 } },
-    { type: 'birth', year: 2030, params: { child_cost: 30000, edu_start_age: 6, edu_cost: 10000 } },
-    { type: 'buy_car', year: 2028, params: { car_price: 100000, down_pct: 0.5, loan_years: 3, loan_rate: 0.026 } },
-    { type: 'buy_house', year: 2035, params: { house_price: 3000000, down_pct: 0.3, mortgage_years: 30, mortgage_rate: 0.035, appreciation: 0.03 } },
-    { type: 'job_change', year: 2033, params: { new_salary: { base_value: 300000, dist_type: 'normal', dist_params: [300000, 30000] } } },
-    { type: 'change_invest_return', year: 2045, params: { new_return: { base_value: 0.06, dist_type: 'normal', dist_params: [0.04, 0.02] } } },
-    { type: 'retirement', year: 2060, params: {} },
-    { type: 'redistribute_invest', year: 'auto', params: {} },
-  ];
+  events = DEFAULT_EVENTS.map(e => ({
+    type: e.type,
+    year: e.year,
+    params: e.params ? JSON.parse(JSON.stringify(e.params)) : {},
+  }));
   renderEventList();
 
   // Bootstrap Pyodide
