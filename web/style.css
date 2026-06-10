@@ -97,6 +97,7 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 }
 
 .tab-item:hover { background: #eef0f5; color: var(--text); }
+.tab-item:hover .tab-label { cursor: text; }
 
 .tab-item.active {
   background: var(--surface);
@@ -127,6 +128,19 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
   width: 13px;
   height: 13px;
   cursor: pointer;
+}
+
+.tab-rename-input {
+  width: 5em;
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: inherit;
+  padding: 0 3px;
+  border: 1px solid var(--primary);
+  border-radius: 3px;
+  outline: none;
+  background: #fff;
+  color: var(--text);
 }
 
 .tab-bar.multi-select .tab-checkbox { display: inline; }

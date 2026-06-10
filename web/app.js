@@ -219,9 +219,17 @@ function renderTabs() {
   // Bind tab click events
   tabList.querySelectorAll('.tab-item').forEach((tab, i) => {
     tab.addEventListener('click', (e) => {
-      // Don't switch tab if clicking close or checkbox
-      if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-checkbox')) return;
+      // Don't switch tab if clicking close, checkbox, or the rename input
+      if (e.target.classList.contains('tab-close') || e.target.classList.contains('tab-checkbox') || e.target.classList.contains('tab-rename-input')) return;
       switchTab(i);
+    });
+  });
+
+  // Bind double-click to rename tab label
+  tabList.querySelectorAll('.tab-label').forEach((span, i) => {
+    span.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      renameTabInline(i);
     });
   });
 
@@ -238,6 +246,52 @@ function renderTabs() {
       updateCompareBtnState();
     });
   });
+}
+
+// Double-click a tab label to rename it inline
+function renameTabInline(idx) {
+  const tabItems = $('tabList').querySelectorAll('.tab-item');
+  const tabItem = tabItems[idx];
+  if (!tabItem) return;
+  const labelSpan = tabItem.querySelector('.tab-label');
+  if (!labelSpan) return;
+
+  const currentLabel = configs[idx].label;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'tab-rename-input';
+  input.value = currentLabel;
+  // Limit to 8 chars so tabs don't overflow
+  input.maxLength = 8;
+
+  labelSpan.replaceWith(input);
+  input.focus();
+  input.select();
+
+  // Allowed: CJK unified ideographs, letters, digits, spaces, dashes
+  const ALLOWED_RE = /^[一-鿿㐀-䶿A-Za-z0-9\s\-]*$/;
+
+  input.addEventListener('input', () => {
+    if (!ALLOWED_RE.test(input.value)) {
+      // Strip disallowed characters
+      input.value = input.value.replace(/[^一-鿿㐀-䶿A-Za-z0-9\s\-]/g, '');
+    }
+  });
+
+  let cancelled = false;
+
+  function commitRename() {
+    if (cancelled) return;
+    const newLabel = input.value.trim() || currentLabel;
+    configs[idx].label = newLabel;
+    renderTabs();
+  }
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); commitRename(); }
+    if (e.key === 'Escape') { e.preventDefault(); cancelled = true; renderTabs(); }
+  });
+  input.addEventListener('blur', commitRename);
 }
 
 function switchTab(idx) {
@@ -258,6 +312,7 @@ function addTab() {
   activeTab = configs.length - 1;
   loadConfig(activeTab);
   renderTabs();
+  renameTabInline(activeTab);
 }
 
 function removeTab(idx) {
