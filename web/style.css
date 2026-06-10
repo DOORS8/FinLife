@@ -44,10 +44,17 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 
 .main-layout {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
   flex: 1;
   min-height: 0;
   padding-top: 12px;
+}
+
+.content-row {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── Config Panel (Left) ── */
@@ -68,6 +75,7 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
   padding-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .tab-list {
@@ -147,8 +155,9 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 
 .tab-actions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
+  align-items: center;
 }
 
 .btn-icon {
@@ -163,8 +172,6 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
   color: #fff;
   border-color: var(--primary);
 }
-
-#compareBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ── Compare Stats ── */
 .compare-stats-grid {
@@ -401,16 +408,9 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 
 #configEditor:focus { outline: none; border-color: var(--primary); }
 
-/* ── Run Bar ── */
-.run-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
+/* ── Samples Label (in tab bar) ── */
 .samples-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   display: flex;
   align-items: center;
@@ -418,7 +418,7 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 }
 
 .samples-label select {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   padding: 2px 4px;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -634,6 +634,7 @@ header h1 { font-size: 1.5rem; font-weight: 700; }
 @media (max-width: 860px) {
   #app { height: auto; }
   .main-layout { display: block; min-height: unset; }
+  .content-row { display: block; }
   .config-panel {
     width: 100%;
     min-width: unset;

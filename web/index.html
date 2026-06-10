@@ -15,20 +15,31 @@
   </header>
 
   <div class="main-layout">
+    <!-- ─── Tab Bar (spanning both columns) ─── -->
+    <div class="tab-bar" id="tabBar">
+      <div class="tab-list" id="tabList">
+        <!-- tabs inserted dynamically -->
+      </div>
+      <div class="tab-actions">
+        <button id="addTabBtn" class="btn btn-sm btn-icon" title="新增配置文件">+</button>
+        <button id="multiSelectBtn" class="btn btn-sm" title="多选对比模式">多选</button>
+        <label class="samples-label">
+          样本数:
+          <select id="samplesSelect">
+            <option value="50">50 (快速)</option>
+            <option value="100">100</option>
+            <option value="200" selected>200 (推荐)</option>
+            <option value="500">500 (精确)</option>
+          </select>
+        </label>
+        <button id="runBtn" class="btn btn-sm btn-primary">▶ 运行模拟</button>
+      </div>
+    </div>
+
+    <!-- ─── Content Row ─── -->
+    <div class="content-row">
     <!-- ─── Left: Config Panel ─── -->
     <section class="config-panel" id="configPanel">
-      <!-- ─── Tab Bar ─── -->
-      <div class="tab-bar" id="tabBar">
-        <div class="tab-list" id="tabList">
-          <!-- tabs inserted dynamically -->
-        </div>
-        <div class="tab-actions">
-          <button id="addTabBtn" class="btn btn-sm btn-icon" title="新增配置文件">+</button>
-          <button id="multiSelectBtn" class="btn btn-sm" title="多选对比模式">多选</button>
-          <button id="compareBtn" class="btn btn-sm btn-primary" title="计算蒙特卡洛对比模拟" disabled>计算</button>
-        </div>
-      </div>
-
       <div class="panel-header">
         <h2>配置</h2>
         <div class="config-actions">
@@ -232,20 +243,6 @@
       <div id="expertMode" style="display:none;flex:1;flex-direction:column">
         <textarea id="configEditor" spellcheck="false"></textarea>
       </div>
-
-      <!-- Run bar -->
-      <div class="run-bar">
-        <label class="samples-label">
-          样本数:
-          <select id="samplesSelect">
-            <option value="50">50 (快速)</option>
-            <option value="100">100</option>
-            <option value="200" selected>200 (推荐)</option>
-            <option value="500">500 (精确)</option>
-          </select>
-        </label>
-        <button id="runBtn" class="btn btn-primary">▶ 运行模拟</button>
-      </div>
     </section>
 
     <!-- ─── Right: Results ─── -->
@@ -294,8 +291,9 @@
       </div>
     </section>
     </div>
-  </div>
-</div>
+    </div><!-- /content-row -->
+  </div><!-- /main-layout -->
+</div><!-- /app -->
 
 <!-- ═══ Event Modal ═══ -->
 <div id="eventModal" class="modal-overlay hidden">

@@ -243,7 +243,7 @@ function renderTabs() {
     cb.addEventListener('change', () => {
       const idx = parseInt(cb.dataset.idx, 10);
       configs[idx].selected = cb.checked;
-      updateCompareBtnState();
+      updateRunBtnText();
     });
   });
 }
@@ -336,12 +336,19 @@ function toggleMultiSelect() {
     configs.forEach(c => c.selected = false);
   }
   renderTabs();
-  updateCompareBtnState();
+  updateRunBtnText();
 }
 
-function updateCompareBtnState() {
-  const selectedCount = configs.filter(c => c.selected).length;
-  $('compareBtn').disabled = selectedCount < 2;
+function updateRunBtnText() {
+  const btn = $('runBtn');
+  if (isMultiSelect) {
+    const selectedCount = configs.filter(c => c.selected).length;
+    btn.textContent = selectedCount >= 2 ? '▶ 对比模拟' : '▶ 对比模拟 (需≥2)';
+    btn.disabled = selectedCount < 2;
+  } else {
+    btn.textContent = '▶ 运行模拟';
+    btn.disabled = false;
+  }
 }
 
 function getSelectedConfigs() {
@@ -362,7 +369,7 @@ async function runCompare() {
   // Save all selected configs first
   saveCurrentConfig();
 
-  const runBtn = $('compareBtn');
+  const runBtn = $('runBtn');
   runBtn.disabled = true;
   runBtn.textContent = '⏳ 运行中...';
   const overlay = $('loadingOverlay');
@@ -399,11 +406,8 @@ async function runCompare() {
     alert('对比模拟出错:\n' + err.message);
     console.error(err);
   } finally {
-    runBtn.disabled = false;
-    runBtn.textContent = '计算';
+    updateRunBtnText();
     overlay.classList.add('hidden');
-    // Re-enable based on selection
-    updateCompareBtnState();
   }
 }
 
@@ -1144,8 +1148,7 @@ async function runSimulation() {
     alert('模拟出错:\n' + err.message);
     console.error(err);
   } finally {
-    runBtn.disabled = false;
-    runBtn.textContent = '▶ 运行模拟';
+    updateRunBtnText();
     overlay.classList.add('hidden');
   }
 }
@@ -1395,13 +1398,15 @@ function updateAssetsSummary() {
   // Reset
   $('loadDefaultBtn').addEventListener('click', resetToDefault);
 
-  // Run single simulation
-  $('runBtn').addEventListener('click', runSimulation);
+  // Run button (dispatches to single or compare based on mode)
+  $('runBtn').addEventListener('click', () => {
+    if (isMultiSelect) runCompare();
+    else runSimulation();
+  });
 
   // Tab bar buttons
   $('addTabBtn').addEventListener('click', addTab);
   $('multiSelectBtn').addEventListener('click', toggleMultiSelect);
-  $('compareBtn').addEventListener('click', runCompare);
 
   // Init default events
   events = DEFAULT_EVENTS.map(e => ({
