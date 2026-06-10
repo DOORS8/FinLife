@@ -686,7 +686,7 @@ function renderEventList() {
     const label = EVENT_LABELS[e.type] || e.type;
     const yearStr = e.year === 'auto' ? '每年' : e.year;
     const summary = eventSummary(e);
-    html += `<tr>
+    html += `<tr class="event-row" data-idx="${i}" title="点击编辑">
       <td>${label}</td>
       <td>${yearStr}</td>
       <td class="event-summary">${summary}</td>
@@ -695,6 +695,15 @@ function renderEventList() {
   });
   html += '</tbody></table>';
   container.innerHTML = html;
+
+  // Edit handlers — click row to edit
+  container.querySelectorAll('.event-row').forEach(row => {
+    row.addEventListener('click', (ev) => {
+      if (ev.target.closest('.event-del-btn')) return; // don't edit on delete click
+      const idx = parseInt(row.dataset.idx, 10);
+      openEventModal(idx);
+    });
+  });
 
   // Delete handlers
   container.querySelectorAll('.event-del-btn').forEach(btn => {
