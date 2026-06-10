@@ -562,9 +562,8 @@ function enableModalFields(type) {
       if (inp.type !== 'radio' || inp.name.startsWith('em_')) inp.disabled = false;
     });
   }
-  // Show/hide trigger year row — hide only for retirement (must pick a specific year)
-  // redistribute_invest: show trigger row so user can choose auto vs. specific year
-  $('em_trigger_row').style.display = (type === 'retirement') ? 'none' : 'flex';
+  // Show trigger year row for all event types
+  $('em_trigger_row').style.display = 'flex';
   // Hide "每年触发" checkbox for one-off events (marriage, birth, buy_house, buy_car, job_change)
   const autoAllowed = ['change_living_expense', 'change_invest_return', 'redistribute_invest'];
   $('em_trigger_auto_label').style.display = autoAllowed.includes(type) ? '' : 'none';
