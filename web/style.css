@@ -32,7 +32,7 @@ body {
   color: var(--text);
   line-height: 1.5;
   overflow: hidden;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -98,6 +98,7 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 /* ── Header ── */
@@ -759,11 +760,11 @@ header h1 {
 
 /* ── Results Wrapper ── */
 .results-wrapper {
-  flex: 1;
+  flex: none;
+  width: calc(100% - 436px);
   position: relative;
-  min-width: 0;
   min-height: 0;
-  width: calc(100% - 420px - 16px);
+  overflow: hidden;
 }
 
 /* ── Results Panel (Right) ── */
@@ -1123,6 +1124,7 @@ header h1 {
     --glass-blur-heavy: 14px;
   }
 
+  body { overflow: auto; height: auto; }
   #app { flex: unset; height: auto; }
   .main-layout { display: block; min-height: unset; }
   .content-row { display: block; }
@@ -1130,9 +1132,9 @@ header h1 {
     width: 100%;
     min-width: unset;
     max-width: unset;
-    max-height: 50vh;
     display: flex;
     flex-direction: column;
+    margin-bottom: 16px;
   }
   .config-form {
     flex: 1;
@@ -1144,7 +1146,7 @@ header h1 {
     min-height: 0;
     overflow-y: auto;
   }
-  .results-wrapper { flex: unset; width: 100% !important; min-height: unset; }
+  .results-wrapper { flex: unset; width: 100% !important; overflow: visible; min-height: unset; }
   .results-panel {
     overflow-y: visible;
     min-width: unset;
