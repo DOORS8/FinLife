@@ -8,11 +8,13 @@
 <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
 </head>
 <body>
+<!-- Wallpaper background for Aero glass effect -->
+<div id="wallpaper"></div>
+<header>
+  <h1>FinLife</h1>
+  <p class="subtitle">蒙特卡洛财务人生模拟器</p>
+</header>
 <div id="app">
-  <header>
-    <h1>FinLife</h1>
-    <p class="subtitle">蒙特卡洛财务人生模拟器</p>
-  </header>
 
   <div class="main-layout">
     <!-- ─── Tab Bar (spanning both columns) ─── -->
@@ -253,8 +255,8 @@
       </div>
       <section class="results-panel">
         <div id="placeholder" class="placeholder">
-        <p>配置参数并点击「运行模拟」开始</p>
-      </div>
+          <p>配置参数并点击「运行模拟」开始</p>
+        </div>
       <div id="resultsContent" class="results-content hidden">
         <div class="result-section">
           <h3>确定性模拟最终状态</h3>
