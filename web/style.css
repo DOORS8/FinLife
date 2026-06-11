@@ -3,7 +3,7 @@
 
 :root {
   --bg: #0a1628;
-  --surface: rgba(220, 230, 245, 0.55);
+  --surface: rgba(220, 230, 245, 0.35);
   --surface-alt: rgba(200, 215, 240, 0.35);
   --surface-solid: rgba(240, 245, 255, 0.92);
   --border: rgba(255, 255, 255, 0.45);
@@ -17,8 +17,8 @@
   --success: #3dba6a;
   --danger: #d94444;
   --warn: #e8a020;
-  --glass-blur: 16px;
-  --glass-blur-heavy: 24px;
+  --glass-blur: 6px;
+  --glass-blur-heavy: 16px;
   --radius: 12px;
   --radius-sm: 8px;
   --radius-xs: 6px;
