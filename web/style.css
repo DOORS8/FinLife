@@ -1202,16 +1202,16 @@ header h1 {
   .tab-actions {
     order: -1; /* Move action buttons above tabs */
     width: 100%;
-    align-items: center;
-    padding: 6px 8px;
+    align-items: stretch;
+    padding: 0;
     border-bottom: 1px solid var(--border-light);
   }
   .tab-list {
     width: 100%;
-    padding: 4px 4px 2px;
+    padding: 0;
   }
   .tab-item {
-    padding: 10px 14px;
+    padding: 14px 14px;
     font-size: 0.82rem;
   }
   .tab-actions .btn-sm {
@@ -1221,11 +1221,11 @@ header h1 {
   }
   .tab-actions .btn-icon {
     height: auto;
-    padding: 14px 18px;
+    padding: 14px 22px;
   }
   #samplesSelect {
     height: auto;
     font-size: 0.82rem;
-    padding: 10px 8px;
+    padding: 14px 8px;
   }
 }
