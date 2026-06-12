@@ -1254,11 +1254,13 @@ function toggleMode() {
     formMode.style.display = 'none';
     expertMode.style.display = 'flex';
     $('toggleModeBtn').textContent = '表单模式';
+    $('toggleModeBtn').classList.add('expert-active');
   } else {
     // Switch back to form
     expertMode.style.display = 'none';
     formMode.style.display = '';
     $('toggleModeBtn').textContent = '专家模式';
+    $('toggleModeBtn').classList.remove('expert-active');
   }
 }
 

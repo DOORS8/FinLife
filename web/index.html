@@ -23,17 +23,14 @@
         <!-- tabs inserted dynamically -->
       </div>
       <div class="tab-actions">
-        <button id="addTabBtn" class="btn btn-sm btn-icon" title="新增配置文件">+</button>
+        <button id="addTabBtn" class="btn btn-sm btn-icon" title="新增配置文件"> + </button>
         <button id="multiSelectBtn" class="btn btn-sm" title="多选对比模式">多选</button>
-        <label class="samples-label">
-          样本数:
-          <select id="samplesSelect">
-            <option value="50">50 (快速)</option>
-            <option value="100">100</option>
-            <option value="200" selected>200 (推荐)</option>
-            <option value="500">500 (精确)</option>
+        <select id="samplesSelect">
+            <option value="50">50样本(快速)</option>
+            <option value="100">100样本</option>
+            <option value="200" selected>200样本(推荐)</option>
+            <option value="500">500样本(精确)</option>
           </select>
-        </label>
         <button id="runBtn" class="btn btn-sm btn-primary">▶ 运行模拟</button>
       </div>
     </div>
